@@ -1,11 +1,18 @@
-import React from 'react';
+import React from "react";
 
-const HomeView: React.FC = () => {
+function HomeView() {
   return (
-    <div>
-      <img src="/images/aquarium/ab_1.jpg" alt="Furina" />
-    </div>
+    <>
+      <div className="page-header clear-filter" filter-color="blue">
+        <div
+          className="page-header-image"
+          style={{
+            backgroundImage: "url(" + require("../assets/img/aquarium/BG_3.jpg") + ")"
+          }}
+        ></div>
+      </div>
+    </>
   );
-};
+}
 
 export default HomeView;
