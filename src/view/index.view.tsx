@@ -1,13 +1,13 @@
-import { useNavigate } from "react-router-dom";
+import Navbar from "../component/homePage/navbar.component";
+import Footer from "../component/homePage/footer.component";
 
 const IndexView: React.FC = () => {
-    const navigate = useNavigate();
-
-    const goToHome = () => {
-        navigate('/home')
-    }
-
-    return <button onClick={goToHome}>Home Page</button>;
+    return (
+        <>
+            <Navbar />
+            <Footer />
+        </>
+    )
 };
 
 export default IndexView;
