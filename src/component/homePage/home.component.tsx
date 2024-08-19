@@ -1,18 +1,11 @@
-interface Person {
-    firstName: string;
-    lastName: string;
-}
-function greeter(person: Person) {
-    return "Hello, " + person.firstName + " " + person.lastName;
-}
+import React from 'react';
 
 const HomeView: React.FC = () => {
-
-    let user = { firstName: "Jane", lastName: "User" };
-
-    document.body.textContent = greeter(user);
-
-    return <div></div>
+  return (
+    <div>
+      <img src="/images/aquarium/ab_1.jpg" alt="Furina" />
+    </div>
+  );
 };
 
 export default HomeView;

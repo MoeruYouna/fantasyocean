@@ -18,13 +18,13 @@ const Footer: React.FC = () => {
                 &copy; {new Date().getFullYear()} FantasyOcean. All rights reserved.
             </Typography>
             <Box sx={{ mt: 1 }}>
-                <Link href="#" color="inherit" sx={{ mx: 1 }}>
+                <Link href="" color="inherit" sx={{ mx: 1 }}>
                     Privacy Policy
                 </Link>
-                <Link href="#" color="inherit" sx={{ mx: 1 }}>
+                <Link href="" color="inherit" sx={{ mx: 1 }}>
                     Terms of Service
                 </Link>
-                <Link href="#" color="inherit" sx={{ mx: 1 }}>
+                <Link href="" color="inherit" sx={{ mx: 1 }}>
                     Contact Us
                 </Link>
             </Box>
