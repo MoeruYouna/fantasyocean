@@ -1,6 +1,13 @@
-// Example of a functional component
+import { useNavigate } from "react-router-dom";
+
 const IndexView: React.FC = () => {
-    return <div>Hello World</div>;
+    const navigate = useNavigate();
+
+    const goToHome = () => {
+        navigate('/home')
+    }
+
+    return <button onClick={goToHome}>Home Page</button>;
 };
 
 export default IndexView;
