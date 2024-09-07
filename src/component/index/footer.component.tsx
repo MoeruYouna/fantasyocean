@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
                 color: 'white',
                 py: 2, 
                 textAlign: 'center',
-                mt: 'auto', // Ensures the footer is pushed to the bottom of the content
+                mt: 'auto',
             }}
             component="footer"
         >

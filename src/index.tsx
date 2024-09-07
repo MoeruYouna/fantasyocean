@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import IndexView from './view/index.view';
+import LoginView from './view/login.view';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 import "./component/assets/css/bootstrap.min.css";
@@ -14,6 +15,7 @@ root.render(
     <Router>
       <Routes>
         <Route path='/' element={<IndexView />} />
+        <Route path='/login' element={<LoginView />} />
       </Routes>
     </Router>
   </React.StrictMode>
