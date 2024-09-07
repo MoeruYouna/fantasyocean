@@ -154,7 +154,7 @@ const LoginPage: React.FC = () => {
                   </Button>
                   <div className="pull-left">
                     <h6>
-                      <a className="link" href="/signup">
+                      <a className="link" href="/register">
                         Create Account
                       </a>
                     </h6>
