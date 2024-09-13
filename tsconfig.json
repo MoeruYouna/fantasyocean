@@ -23,6 +23,6 @@
   },
   "include": [
     "src",
-    "src/declaration.d.ts",
+    "src/declaration.d.ts", "backend/server.js",
   ]
 }
