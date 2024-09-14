@@ -18,6 +18,19 @@ mongoose.connect('mongodb://localhost:27017')
     console.log('Failed to connect to MongoDB', err);
   });
 
+//Connect to Router
+const fishRouter = require('./routes/Fish.router')
+app.use('/fishs', fishRouter);
+
+const accRouter = require('./routes/Account.router');
+app.use('/accounts', accRouter);
+
+const loginRouter = require('./routes/Login.router');
+app.use('/login', loginRouter);
+
+const cartRouter = require('./routes/Cart.router');
+app.use('/carts', cartRouter);
+
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
