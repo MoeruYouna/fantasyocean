@@ -1,3 +1,4 @@
+require('dotenv').config(); 
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors'); 
@@ -22,11 +23,8 @@ mongoose.connect('mongodb://localhost:27017')
 const fishRouter = require('./routes/Fish.router')
 app.use('/fishs', fishRouter);
 
-const accRouter = require('./routes/Account.router');
-app.use('/accounts', accRouter);
-
-const loginRouter = require('./routes/Login.router');
-app.use('/login', loginRouter);
+const accRouter = require('./routes/Auth.router');
+app.use('/api/auth', accRouter);
 
 const cartRouter = require('./routes/Cart.router');
 app.use('/carts', cartRouter);

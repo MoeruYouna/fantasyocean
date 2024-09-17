@@ -19,27 +19,29 @@ import {
 } from 'reactstrap';
 
 interface FormData {
-  emailOrUsername: string;
+  email: string;
   password: string;
 }
 
 const LoginPage: React.FC = () => {
-  const [firstFocus, setFirstFocus] = useState<boolean>(false);
-  const [lastFocus, setLastFocus] = useState<boolean>(false);
-  const [modal, setModal] = useState<boolean>(false);
-  const [modalMessage, setModalMessage] = useState<string>('');
   const [formData, setFormData] = useState<FormData>({
-    emailOrUsername: '',
+    email: '',
     password: '',
   });
+  const [isFocused, setIsFocused] = useState<{ [key: string]: boolean }>({
+    emailOrUsername: false,
+    password: false,
+  });
+  const [modal, setModal] = useState<boolean>(false);
+  const [modalMessage, setModalMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     document.body.classList.add('login-page', 'sidebar-collapse');
     document.documentElement.classList.remove('nav-open');
     window.scrollTo(0, 0);
-    document.body.scrollTop = 0;
     return () => {
       document.body.classList.remove('login-page', 'sidebar-collapse');
     };
@@ -53,20 +55,32 @@ const LoginPage: React.FC = () => {
     }));
   };
 
+  const handleFocus = (field: string, focused: boolean) => {
+    setIsFocused((prev) => ({
+      ...prev,
+      [field]: focused,
+    }));
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true);
+    setErrorMessage('');
     try {
-      const response = await axios.post('http://localhost:5000/login', {
-        emailOrUsername: formData.emailOrUsername,
+      const response = await axios.post('http://localhost:5000/api/auth/login', {
+        email: formData.email,
         password: formData.password,
       });
       const { token } = response.data;
       localStorage.setItem('token', token);
       setModalMessage('Account login successfully!');
-    } catch (error) {
+    } catch (error: any) {
       setModalMessage('Failed to login account. Please try again.');
-      setErrorMessage('Invalid email/username or password');
+      setErrorMessage(
+        error.response?.data?.message || 'Invalid email/username or password'
+      );
     } finally {
+      setIsLoading(false);
       setModal(true);
     }
   };
@@ -101,9 +115,9 @@ const LoginPage: React.FC = () => {
                 </CardHeader>
                 <CardBody>
                   <InputGroup
-                    className={
-                      'no-border input-lg' + (firstFocus ? ' input-group-focus' : '')
-                    }
+                    className={`no-border input-lg ${
+                      isFocused.email ? 'input-group-focus' : ''
+                    }`}
                   >
                     <InputGroupAddon addonType="prepend">
                       <InputGroupText>
@@ -111,19 +125,19 @@ const LoginPage: React.FC = () => {
                       </InputGroupText>
                     </InputGroupAddon>
                     <Input
-                      placeholder="Email or User Name..."
+                      placeholder="Email"
                       type="text"
-                      name="emailOrUsername"
-                      value={formData.emailOrUsername}
+                      name="email"
+                      value={formData.email}
                       onChange={handleChange}
-                      onFocus={() => setFirstFocus(true)}
-                      onBlur={() => setFirstFocus(false)}
+                      onFocus={() => handleFocus('email', true)}
+                      onBlur={() => handleFocus('email', false)}
                     />
                   </InputGroup>
                   <InputGroup
-                    className={
-                      'no-border input-lg' + (lastFocus ? ' input-group-focus' : '')
-                    }
+                    className={`no-border input-lg ${
+                      isFocused.password ? 'input-group-focus' : ''
+                    }`}
                   >
                     <InputGroupAddon addonType="prepend">
                       <InputGroupText>
@@ -136,8 +150,8 @@ const LoginPage: React.FC = () => {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      onFocus={() => setLastFocus(true)}
-                      onBlur={() => setLastFocus(false)}
+                      onFocus={() => handleFocus('password', true)}
+                      onBlur={() => handleFocus('password', false)}
                     />
                   </InputGroup>
                   {errorMessage && <p className="text-danger">{errorMessage}</p>}
@@ -149,8 +163,9 @@ const LoginPage: React.FC = () => {
                     color="info"
                     type="submit"
                     size="lg"
+                    disabled={isLoading}
                   >
-                    Log In
+                    {isLoading ? 'Logging in...' : 'Log In'}
                   </Button>
                   <div className="pull-left">
                     <h6>

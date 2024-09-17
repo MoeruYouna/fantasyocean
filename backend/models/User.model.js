@@ -1,3 +1,4 @@
+// models/User.js
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -5,14 +6,32 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  email: {
-    type: String,
+  accID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Acc',
     required: true,
-    unique: true,
+  },
+  cartID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Cart',
+    required: false,
   },
   age: {
     type: Number,
     required: true,
+  },
+  address: {
+    type: String,
+    unique: false,
+  },
+  avt: {
+    type: String,
+    unique: false,
+  },
+  description: {
+    type: String,
+    unique: false,
+    required: false,
   },
 });
 

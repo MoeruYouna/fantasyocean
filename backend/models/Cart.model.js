@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
 const CartSchema = new mongoose.Schema({
-    accID: {
+    userID: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Account'
+        ref: 'users'
     }
 });
 

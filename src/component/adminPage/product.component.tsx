@@ -1,5 +1,4 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import {
   Button,
@@ -20,42 +19,42 @@ import {
 } from 'reactstrap';
 
 interface FormData {
-  email: string;
   name: string;
-  password: string;
+  category: string;
+  image: string;
+  description: string;
+  price: string;
 }
 
-const Register: React.FC = () => {
-  const [firstFocus, setFirstFocus] = useState<boolean>(false);
-  const [lastFocus, setLastFocus] = useState<boolean>(false);
-  const [emailFocus, setEmailFocus] = useState<boolean>(false);
+const InsertPage: React.FC = () => {
   const [modal, setModal] = useState<boolean>(false);
   const [modalMessage, setModalMessage] = useState<string>('');
   const [formData, setFormData] = useState<FormData>({
-    email: '',
     name: '',
-    password: '',
+    category: '',
+    image: '',
+    description: '',
+    price: '',
   });
-
-  const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
+    setFormData({
+      ...formData,
       [name]: value,
-    }));
+    });
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/register', formData);
+      const response = await axios.post('http://localhost:5000/fishs', formData);
       console.log(response.data);
-      setModalMessage('Account created successfully!');
+      setModalMessage('Insert successfully!');
     } catch (error) {
-      console.error(error);
-      setModalMessage('Failed to create account. Please try again.');
+      setModalMessage('Failed to insert. Please try again.');
+      setErrorMessage('Invalid input Data');
     } finally {
       setModal(true);
     }
@@ -64,7 +63,7 @@ const Register: React.FC = () => {
   const closeModal = () => {
     setModal(false);
     if (modalMessage === 'Account created successfully!') {
-      navigate('/login');
+      console.log('success');
     }
   };
 
@@ -72,9 +71,6 @@ const Register: React.FC = () => {
     <div
       className="section section-signup"
       style={{
-        backgroundImage: "url(" + require('../assets/img/bg11.jpg') + ")",
-        backgroundSize: 'cover',
-        backgroundPosition: 'top center',
         minHeight: '700px',
       }}
     >
@@ -84,83 +80,78 @@ const Register: React.FC = () => {
             <Form onSubmit={handleSubmit} className="form">
               <CardHeader className="text-center">
                 <CardTitle className="title-up" tag="h3">
-                  Sign Up
+                  Insert
                 </CardTitle>
-                <div className="social-line">
-                  <Button
-                    className="btn-neutral btn-icon btn-round"
-                    color="facebook"
-                    href="#pablo"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    <i className="fab fa-facebook-square"></i>
-                  </Button>
-                  <Button
-                    className="btn-neutral btn-icon btn-round"
-                    color="twitter"
-                    href="#pablo"
-                    onClick={(e) => e.preventDefault()}
-                    size="lg"
-                  >
-                    <i className="fab fa-twitter"></i>
-                  </Button>
-                  <Button
-                    className="btn-neutral btn-icon btn-round"
-                    color="google"
-                    href="#pablo"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    <i className="fab fa-google-plus"></i>
-                  </Button>
-                </div>
               </CardHeader>
               <CardBody>
-                <InputGroup className={'no-border' + (emailFocus ? ' input-group-focus' : '')}>
+                <InputGroup>
                   <InputGroupAddon addonType="prepend">
                     <InputGroupText>
                       <i className="now-ui-icons ui-1_email-85"></i>
                     </InputGroupText>
                   </InputGroupAddon>
                   <Input
-                    placeholder="Email..."
-                    type="email"
-                    name="email"
-                    value={formData.email}
+                    placeholder="Name. . ."
+                    type="text"
+                    name="name"
+                    value={formData.name}
                     onChange={handleChange}
-                    onFocus={() => setEmailFocus(true)}
-                    onBlur={() => setEmailFocus(false)}
                   />
                 </InputGroup>
-                <InputGroup className={'no-border' + (firstFocus ? ' input-group-focus' : '')}>
+                <InputGroup>
                   <InputGroupAddon addonType="prepend">
                     <InputGroupText>
                       <i className="now-ui-icons users_circle-08"></i>
                     </InputGroupText>
                   </InputGroupAddon>
                   <Input
-                    placeholder="User Name..."
+                    placeholder="Category. . ."
                     type="text"
-                    name="name"
-                    value={formData.name}
+                    name="category"
+                    value={formData.category}
                     onChange={handleChange}
-                    onFocus={() => setFirstFocus(true)}
-                    onBlur={() => setFirstFocus(false)}
                   />
                 </InputGroup>
-                <InputGroup className={'no-border' + (lastFocus ? ' input-group-focus' : '')}>
+                <InputGroup>
                   <InputGroupAddon addonType="prepend">
                     <InputGroupText>
                       <i className="now-ui-icons ui-1_lock-circle-open"></i>
                     </InputGroupText>
                   </InputGroupAddon>
                   <Input
-                    placeholder="Password..."
+                    placeholder="Image. . ."
                     type="text"
-                    name="password"
-                    value={formData.password}
+                    name="image"
+                    value={formData.image}
                     onChange={handleChange}
-                    onFocus={() => setLastFocus(true)}
-                    onBlur={() => setLastFocus(false)}
+                  />
+                </InputGroup>
+                <InputGroup>
+                  <InputGroupAddon addonType="prepend">
+                    <InputGroupText>
+                      <i className="now-ui-icons ui-1_lock-circle-open"></i>
+                    </InputGroupText>
+                  </InputGroupAddon>
+                  <Input
+                    placeholder="Description. . ."
+                    type="text"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                  />
+                </InputGroup>
+                <InputGroup>
+                  <InputGroupAddon addonType="prepend">
+                    <InputGroupText>
+                      <i className="now-ui-icons ui-1_lock-circle-open"></i>
+                    </InputGroupText>
+                  </InputGroupAddon>
+                  <Input
+                    placeholder="Price. . ."
+                    type="number"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleChange}
                   />
                 </InputGroup>
               </CardBody>
@@ -171,24 +162,12 @@ const Register: React.FC = () => {
                   type="submit"
                   size="lg"
                 >
-                  Get Started
+                  Add New Fish
                 </Button>
               </CardFooter>
             </Form>
           </Card>
         </Row>
-        <div className="col text-center">
-          <Button
-            className="btn-round btn-white"
-            color="default"
-            to="/login"
-            outline
-            size="lg"
-            tag={Link}
-          >
-            View Login Page
-          </Button>
-        </div>
       </Container>
       <Modal modalClassName="modal-mini modal-info" toggle={closeModal} isOpen={modal}>
         <div className="modal-header justify-content-center">
@@ -209,4 +188,4 @@ const Register: React.FC = () => {
   );
 };
 
-export default Register;
+export default InsertPage;

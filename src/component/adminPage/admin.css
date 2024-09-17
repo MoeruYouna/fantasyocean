@@ -1,0 +1,53 @@
+.fish-list {
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+  }
+  
+  .fish-list h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .fish-list .btn-them {
+    display: block;
+    margin: 0 auto;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .fish-list table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .fish-list th, .fish-list td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    text-align: left;
+  }
+  
+  .fish-list th {
+    background-color: #f0f0f0;
+  }
+  
+  .fish-list .btn-sua, .fish-list .btn-xoa {
+    padding: 5px 10px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    cursor: pointer;
+  }
+  
+  .fish-list .btn-sua {
+    background-color: #007bff;
+    color: #fff;
+  }
+  
+  .fish-list .btn-xoa {
+    background-color: #dc3545;
+    color: #fff;
+  }
