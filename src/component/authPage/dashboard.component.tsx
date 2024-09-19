@@ -1,5 +1,4 @@
-// components/dashboard.component.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Button, Card, CardBody, CardHeader, Input, Container, Col, Form, FormGroup } from 'reactstrap';
@@ -17,6 +16,7 @@ const Dashboard: React.FC = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [formData, setFormData] = useState<UserProfile>({ name: '', email: '' });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null); // Store the selected file
   const [errorMessage, setErrorMessage] = useState<string>('');
   const navigate = useNavigate();
 
@@ -50,19 +50,34 @@ const Dashboard: React.FC = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setAvatarFile(e.target.files[0]);
+    }
+  };
+
+  const handleUpdateProfile = async (e: FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
+    const formDataToSend = new FormData();
+
+    // Add other form data to FormData object
+    Object.entries(formData).forEach(([key, value]) => {
+      formDataToSend.append(key, value as string);
+    });
+
+    // If an avatar file is selected, add it to the form data
+    if (avatarFile) {
+      formDataToSend.append('avt', avatarFile);
+    }
+
     try {
-      const response = await axios.put(
-        'http://localhost:5000/api/user/profile',
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.put('http://localhost:5000/api/user/profile', formDataToSend, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       setUser(response.data);
       setIsEditing(false);
       setErrorMessage('');
@@ -85,11 +100,12 @@ const Dashboard: React.FC = () => {
             <div className="profile-container">
               {user?.avt ? (
                 <img
-                  src={user.avt}
-                  alt="Profile"
+                  src={`http://localhost:5000/${user?.avt}`} // Adjust the path
+                  alt="Profile Avatar"
                   className="rounded-circle"
                   style={{ width: '150px', height: '150px' }}
                 />
+
               ) : (
                 <div className="default-avatar">
                   <i className="now-ui-icons users_circle-08" style={{ fontSize: '50px' }}></i>
@@ -99,6 +115,7 @@ const Dashboard: React.FC = () => {
             <h4>{user?.name || 'User Name'}</h4>
             <p>{user?.email}</p>
           </CardHeader>
+
           <CardBody>
             {errorMessage && <p className="text-danger">{errorMessage}</p>}
             {isEditing ? (
@@ -139,6 +156,17 @@ const Dashboard: React.FC = () => {
                     placeholder="Address"
                   />
                 </FormGroup>
+
+                {/* Avatar upload */}
+                <FormGroup>
+                  <Input
+                    type="file"
+                    name="avt"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                  />
+                </FormGroup>
+
                 <Button type="submit" color="primary">
                   Save Changes
                 </Button>

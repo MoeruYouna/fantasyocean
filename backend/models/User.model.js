@@ -1,40 +1,60 @@
-// models/User.js
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
+  email: {
+    type: String,
+    required: [true, 'Email is required'],
+    trim: true,
+    lowercase: true,  // Always store email in lowercase
+    unique: true,  // Make sure email is unique
+    match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address'], // Add validation
+  },
   name: {
     type: String,
     required: true,
   },
-  accID: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Acc',
+  password: {
+    type: String,
     required: true,
   },
   age: {
     type: Number,
     required: true,
+    default: 0,
   },
   address: {
     type: String,
-    unique: false,
+    default: '',
   },
   avt: {
     type: String,
-    unique: false,
+    default: '',
   },
   description: {
     type: String,
-    unique: false,
-    required: false,
+    default: '',
   },
   role: {
     type: String,
-    unique: false,
     required: true,
+    default: 'user',
   }
 });
 
-const User = mongoose.model('User', userSchema);
+// Hash the password before saving
+userSchema.pre('save', async function(next) {
+  if (this.isModified('password') || this.isNew) {
+    try {
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+    } catch (err) {
+      return next(err);
+    }
+  }
+  this.email = this.email.toLowerCase();  // Normalize email to lowercase
+  next();
+});
 
+const User = mongoose.model('User', userSchema);
 module.exports = User;

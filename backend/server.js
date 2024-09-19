@@ -1,13 +1,14 @@
 require('dotenv').config(); 
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors'); 
+const cors = require('cors');
+const path = require('path');
 const app = express();
 const PORT = 5000;
 
 app.use(cors());
-// Middleware
 app.use(express.json());
+app.use('/assets/img/profile', express.static(path.join(__dirname, 'assets/img/profile')));
 
 // MongoDB connection
 //mongoose.connect('mongodb+srv://charlotteisville:Phuong%40n2011@cluster0.e5okuec.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')

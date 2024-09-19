@@ -84,6 +84,10 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const closeModal = () => {
+    setModal(false);
+  };
+
   return (
     <div className="page-header clear-filter" filter-color="blue">
       <div
@@ -176,6 +180,7 @@ const LoginPage: React.FC = () => {
         </Container>
         <Modal
           modalClassName="modal-mini modal-info"
+          toggle={closeModal}
           isOpen={modal}
         >
           <div className="modal-header justify-content-center">
@@ -187,7 +192,7 @@ const LoginPage: React.FC = () => {
             <p>{modalMessage}</p>
           </ModalBody>
           <div className="modal-footer">
-            <Button className="btn-neutral" color="link" >
+            <Button className="btn-neutral" color="link" onClick={closeModal}>
               Close
             </Button>
           </div>

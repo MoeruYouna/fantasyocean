@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User.model')
+const User = require('../models/User.model');
 const authMiddleware = require('../middleware/auth'); // Middleware to protect routes
 
 // Get logged-in user's profile
 router.get('/profile', authMiddleware, async (req, res) => {
   try {
-    const user = await User.findOne({ accID: req.user.userId }).populate('accID', 'email name'); // Populate the account details
+    const user = await User.findById(req.user.userId); // Find user by MongoDB _id
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -17,21 +17,29 @@ router.get('/profile', authMiddleware, async (req, res) => {
   }
 });
 
+// Update user's profile
 router.put('/profile', authMiddleware, async (req, res) => {
   try {
-    const updatedUser = await User.findOneAndUpdate(
-      { accID: req.user.userId }, // Use accID here instead of userId
-      { ...req.body },
+    const userId = req.user.userId;
+    const { name, age, address, description, avt } = req.body; // Receive avatar path from client
+
+    const updatedData = { name, age, address, description, avt }; // Store the passed avatar filename
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId, // Find by MongoDB _id
+      updatedData,
       { new: true } // Return the updated document
     );
+
     if (!updatedUser) {
       return res.status(404).json({ message: 'User not found' });
     }
+
     res.json(updatedUser);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    console.error('Error updating profile:', err);
+    res.status(400).json({ message: 'Failed to update profile' });
   }
 });
-
 
 module.exports = router;
