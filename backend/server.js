@@ -23,11 +23,15 @@ mongoose.connect('mongodb://localhost:27017')
 const fishRouter = require('./routes/Fish.router')
 app.use('/fishs', fishRouter);
 
-const accRouter = require('./routes/Auth.router');
-app.use('/api/auth', accRouter);
+const authRouter = require('./routes/Auth.router');
+app.use('/api/auth', authRouter);
+
+const userRouter = require('./routes/User.router');
+app.use('/api/user', userRouter);
 
 const cartRouter = require('./routes/Cart.router');
 app.use('/carts', cartRouter);
+
 
 // Start the server
 app.listen(PORT, () => {

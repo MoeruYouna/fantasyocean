@@ -24,12 +24,9 @@ interface FormData {
 }
 
 const LoginPage: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({
-    email: '',
-    password: '',
-  });
+  const [formData, setFormData] = useState<FormData>({ email: '', password: '' });
   const [isFocused, setIsFocused] = useState<{ [key: string]: boolean }>({
-    emailOrUsername: false,
+    email: false,
     password: false,
   });
   const [modal, setModal] = useState<boolean>(false);
@@ -42,6 +39,7 @@ const LoginPage: React.FC = () => {
     document.body.classList.add('login-page', 'sidebar-collapse');
     document.documentElement.classList.remove('nav-open');
     window.scrollTo(0, 0);
+    document.body.scrollTop = 0;
     return () => {
       document.body.classList.remove('login-page', 'sidebar-collapse');
     };
@@ -71,24 +69,18 @@ const LoginPage: React.FC = () => {
         email: formData.email,
         password: formData.password,
       });
+
       const { token } = response.data;
-      localStorage.setItem('token', token);
+      localStorage.setItem('token', token); 
       setModalMessage('Account login successfully!');
+      navigate('/dashboard');
     } catch (error: any) {
+      console.error('Login error:', error); // Log error for debugging
       setModalMessage('Failed to login account. Please try again.');
-      setErrorMessage(
-        error.response?.data?.message || 'Invalid email/username or password'
-      );
+      setErrorMessage(error.response?.data?.message || 'Invalid email or password');
     } finally {
       setIsLoading(false);
       setModal(true);
-    }
-  };
-
-  const closeModal = () => {
-    setModal(false);
-    if (modalMessage === 'Account login successfully!') {
-      navigate('/');
     }
   };
 
@@ -115,9 +107,7 @@ const LoginPage: React.FC = () => {
                 </CardHeader>
                 <CardBody>
                   <InputGroup
-                    className={`no-border input-lg ${
-                      isFocused.email ? 'input-group-focus' : ''
-                    }`}
+                    className={`no-border input-lg ${isFocused.email ? 'input-group-focus' : ''}`}
                   >
                     <InputGroupAddon addonType="prepend">
                       <InputGroupText>
@@ -135,9 +125,7 @@ const LoginPage: React.FC = () => {
                     />
                   </InputGroup>
                   <InputGroup
-                    className={`no-border input-lg ${
-                      isFocused.password ? 'input-group-focus' : ''
-                    }`}
+                    className={`no-border input-lg ${isFocused.password ? 'input-group-focus' : ''}`}
                   >
                     <InputGroupAddon addonType="prepend">
                       <InputGroupText>
@@ -188,7 +176,6 @@ const LoginPage: React.FC = () => {
         </Container>
         <Modal
           modalClassName="modal-mini modal-info"
-          toggle={closeModal}
           isOpen={modal}
         >
           <div className="modal-header justify-content-center">
@@ -200,7 +187,7 @@ const LoginPage: React.FC = () => {
             <p>{modalMessage}</p>
           </ModalBody>
           <div className="modal-footer">
-            <Button className="btn-neutral" color="link" onClick={closeModal}>
+            <Button className="btn-neutral" color="link" >
               Close
             </Button>
           </div>

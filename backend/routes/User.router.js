@@ -1,31 +1,37 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User.model');
+const User = require('../models/User.model')
+const authMiddleware = require('../middleware/auth'); // Middleware to protect routes
 
-// Get all users
-router.get('/', async (req, res) => {
+// Get logged-in user's profile
+router.get('/profile', authMiddleware, async (req, res) => {
   try {
-    const users = await User.find();
-    res.json(users);
+    const user = await User.findOne({ accID: req.user.userId }).populate('accID', 'email name'); // Populate the account details
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Error fetching user profile:', err);
+    res.status(500).json({ message: 'Failed to fetch user profile' });
   }
 });
 
-// Create a new user
-router.post('/', async (req, res) => {
-  const user = new User({
-    name: req.body.name,
-    email: req.body.email,
-    age: req.body.age,
-  });
-
+router.put('/profile', authMiddleware, async (req, res) => {
   try {
-    const newUser = await user.save();
-    res.status(201).json(newUser);
+    const updatedUser = await User.findOneAndUpdate(
+      { accID: req.user.userId }, // Use accID here instead of userId
+      { ...req.body },
+      { new: true } // Return the updated document
+    );
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(updatedUser);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
+
 
 module.exports = router;

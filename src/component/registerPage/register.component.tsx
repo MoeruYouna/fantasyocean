@@ -51,15 +51,17 @@ const Register: React.FC = () => {
     e.preventDefault();
     try {
       const response = await axios.post('http://localhost:5000/api/auth/register', formData);
-      console.log(response.data);
+      const { token } = response.data;
+      localStorage.setItem('token', token);
       setModalMessage('Account created successfully!');
+      navigate('/complete-profile');
     } catch (error) {
       console.error(error);
       setModalMessage('Failed to create account. Please try again.');
     } finally {
       setModal(true);
     }
-  };
+  };  
 
   const closeModal = () => {
     setModal(false);

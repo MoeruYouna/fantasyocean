@@ -11,11 +11,6 @@ const userSchema = new mongoose.Schema({
     ref: 'Acc',
     required: true,
   },
-  cartID: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Cart',
-    required: false,
-  },
   age: {
     type: Number,
     required: true,
@@ -33,6 +28,11 @@ const userSchema = new mongoose.Schema({
     unique: false,
     required: false,
   },
+  role: {
+    type: String,
+    unique: false,
+    required: true,
+  }
 });
 
 const User = mongoose.model('User', userSchema);
