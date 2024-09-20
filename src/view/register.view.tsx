@@ -6,7 +6,7 @@ const RegisterView: React.FC = () => {
     return (
         <>
             <IndexNavbar />
-            <div className="wrapper">
+            <div className="wrapper" style={{backgroundColor: '#f5f5f5'}}>
                 <Register />
                 <Footer />
             </div>

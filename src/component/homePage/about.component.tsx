@@ -23,7 +23,6 @@ function AboutPage() {
   }, []);
   return (
     <>
-      <div className="wrapper">
         <div className="section section-about-us">
           <Container>
             <Row>
@@ -85,7 +84,6 @@ Tại Dolphin-Shop, chúng tôi hiểu rằng mỗi hồ cá không chỉ là m�
             </div>
           </Container>
         </div>
-      </div>
     </>
   );
 }
