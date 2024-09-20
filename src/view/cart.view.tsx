@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
-
 import IndexNavbar from "../component/index/navbar.component";
 import Footer from "../component/index/footer.component";
 import CartPage from "../component/cartPage/cart.component";
+import HomeView from "../component/homePage/home.component";
 
 const CartView: React.FC = () => {
     useEffect(() => {
@@ -21,7 +21,8 @@ const CartView: React.FC = () => {
     return (
         <>
             <IndexNavbar />
-            <div className="wrapper">
+            <HomeView />
+            <div className="wrapper" style={{backgroundColor: '#f5f5f5'}}>
                 <div className="main">
                     <CartPage />
                 </div>

@@ -45,7 +45,7 @@ const Dashboard: React.FC = () => {
     fetchUserProfile();
   }, [navigate]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
@@ -93,6 +93,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
+    <div className='backGround' style={{backgroundImage: `url(${require('../assets/img/bg8.jpg')})`}}>
     <Container className="mt-5">
       <Col className="ml-auto mr-auto" md="6">
         <Card className="card-user">
@@ -100,12 +101,11 @@ const Dashboard: React.FC = () => {
             <div className="profile-container">
               {user?.avt ? (
                 <img
-                  src={`http://localhost:5000/${user?.avt}`} // Adjust the path
+                  src={require(`../assets/img/profile/${user?.avt}`)}
                   alt="Profile Avatar"
                   className="rounded-circle"
                   style={{ width: '150px', height: '150px' }}
                 />
-
               ) : (
                 <div className="default-avatar">
                   <i className="now-ui-icons users_circle-08" style={{ fontSize: '50px' }}></i>
@@ -156,6 +156,17 @@ const Dashboard: React.FC = () => {
                     placeholder="Address"
                   />
                 </FormGroup>
+                
+                {/* Description Edit */}
+                <FormGroup>
+                  <Input
+                    type="textarea"
+                    name="description"
+                    value={formData.description || ''}
+                    onChange={handleChange}
+                    placeholder="Description"
+                  />
+                </FormGroup>
 
                 {/* Avatar upload */}
                 <FormGroup>
@@ -191,6 +202,7 @@ const Dashboard: React.FC = () => {
         </Card>
       </Col>
     </Container>
+    </div>
   );
 };
 

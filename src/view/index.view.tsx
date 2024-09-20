@@ -5,12 +5,13 @@ import AboutPage from "../component/homePage/about.component";
 import Testimonials from "../component/homePage/show.component";
 import ChatbotPage from "../component/chatbotPage/chatbot.component";
 
+
 const IndexView: React.FC = () => {
     return (
         <>
             <IndexNavbar />
-            <div className="wrapper">
-                <HomeView />
+            <HomeView />
+            <div className="wrapper" style={{backgroundColor: '#f5f5f5'}}>
                 <div className="main">
                     <AboutPage />
                 </div>

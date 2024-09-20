@@ -1,6 +1,7 @@
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import './userForm.css' // Import the CSS file
 
 const avatarImages = ['avatar1.jpg', 'avatar2.jpg', 'avatar3.jpg'];
 
@@ -41,34 +42,64 @@ const UserFormPage: React.FC = () => {
   };
 
   return (
-    <div>
-      <h2>Complete Your Profile</h2>
-      <form onSubmit={handleSubmit}>
-        <input type="text" name="age" placeholder="Age" value={formData.age} onChange={handleChange} />
-        <input type="text" name="address" placeholder="Address" value={formData.address} onChange={handleChange} />
-        <textarea name="description" placeholder="Description" value={formData.description} onChange={handleChange} />
+    <div className="form-container">
+      <h2 className="form-header">Complete Your Profile</h2>
+      <form onSubmit={handleSubmit} className="user-form">
+        <div className="form-group">
+          <label htmlFor="age">Age</label>
+          <input
+            type="text"
+            name="age"
+            placeholder="Age"
+            value={formData.age}
+            onChange={handleChange}
+          />
+        </div>
 
-        <label htmlFor="avatar">Choose Avatar:</label>
-        <select name="avatar" value={selectedAvatar} onChange={handleAvatarChange}>
-          {avatarImages.map((image) => (
-            <option key={image} value={image}>
-              {image}
-            </option>
-          ))}
-        </select>
+        <div className="form-group">
+          <label htmlFor="address">Address</label>
+          <input
+            type="text"
+            name="address"
+            placeholder="Address"
+            value={formData.address}
+            onChange={handleChange}
+          />
+        </div>
 
-        {/* Display selected avatar */}
-        <div>
+        <div className="form-group">
+          <label htmlFor="description">Description</label>
+          <textarea
+            name="description"
+            placeholder="Description"
+            value={formData.description}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="avatar">Choose Avatar</label>
+          <select name="avatar" value={selectedAvatar} onChange={handleAvatarChange}>
+            {avatarImages.map((image) => (
+              <option key={image} value={image}>
+                {image}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="avatar-preview">
           <p>Selected Avatar:</p>
           <img
             src={require(`../assets/img/profile/${selectedAvatar}`)}
             alt="Selected Avatar"
-            style={{ width: '150px', height: '150px' }}
+            className="avatar-image"
           />
         </div>
 
-        {errorMessage && <p>{errorMessage}</p>}
-        <button type="submit">Save</button>
+        {errorMessage && <p className="error-message">{errorMessage}</p>}
+
+        <button type="submit" className="submit-button">Save</button>
       </form>
     </div>
   );
