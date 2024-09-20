@@ -59,15 +59,15 @@ const FishDetail: React.FC = () => {
   }, [_id]);
 
   const addToCart = async () => {
-    const token = localStorage.getItem('token'); // Retrieve JWT token from localStorage
+    const token = localStorage.getItem('token');
     if (!token) {
       setModalMessage('You need to log in to add items to the cart.');
       setModal(true);
       return;
     }
-
+  
     try {
-      const response = await axios.post(
+      await axios.post(
         'http://localhost:5000/carts/cart',
         {
           fishID: _id,
@@ -87,6 +87,7 @@ const FishDetail: React.FC = () => {
       setModal(true);
     }
   };
+  
 
   const closeModal = () => {
     setModal(false);

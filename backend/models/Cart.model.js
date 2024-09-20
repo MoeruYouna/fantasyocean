@@ -11,16 +11,18 @@ const cartSchema = new mongoose.Schema({
       fishId: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Fish', 
-        required: true },
+        required: true 
+      },
 
       quantity: { 
         type: Number, 
-        required: true },
+        required: true 
+      },
 
       price: { 
         type: Number, 
         required: true
-    }, 
+      }, 
     }
   ],
 

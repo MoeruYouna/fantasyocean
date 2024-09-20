@@ -35,7 +35,7 @@ const Dashboard: React.FC = () => {
           },
         });
         setUser(response.data);
-        setFormData(response.data); // Set initial form data
+        setFormData(response.data);
       } catch (error: any) {
         console.error('Failed to fetch user profile:', error);
         setErrorMessage('Failed to load profile. Please try again.');
