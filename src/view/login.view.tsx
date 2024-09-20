@@ -6,7 +6,7 @@ const LoginView: React.FC = () => {
     return (
         <>
             <IndexNavbar />
-            <div className="wrapper" style={{backgroundColor: '#f5f5f5'}}>
+            <div className="wrapper" >
                 <LoginPage />
             </div>
         </>

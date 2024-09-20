@@ -1,67 +1,52 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const Cart = require("../models/Cart.model");
-const CartItem = require("../models/Cart.model");
+const authMiddleware = require('../middleware/auth');
+const Cart = require('../models/Cart.model');
+const Fish = require('../models/Fish.model');
 
-router.post('/', async(req, res) => {
-    try{ 
-        const newCart = new Cart();
-        const savedCart = await newCart.save();
-        res.status(201).json(savedCart);
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-});
-
-router.post('/item', async(req, res) => {
-    const {accID, fishID, quantity} = req.body;
+// Add item to cart (protected route)
+router.post('/cart', authMiddleware, async (req, res) => {
+    const { fishID, quantity } = req.body;
+    const userId = req.user.userId;  // Get the logged-in user's ID from the token
+  
     try {
-        const newItem = new CartItem({ accID, fishID, quantity });
-        const savedItem = await newItem.save();
-        res.status(201).json(savedItem);
+      let cart = await Cart.findOne({ userId });
+      const fish = await Fish.findById(fishID);
+
+      if (!fish) {
+        return res.status(404).json({ error: "Fish not found" });
+      }
+
+      if (!cart) {
+        // Create a new cart if none exists
+        cart = new Cart({ userId, items: [], totalPrice: 0 });
+      }
+
+      const itemIndex = cart.items.findIndex(item => item.fishId.equals(fishID));
+
+      if (itemIndex > -1) {
+        // Fish exists in the cart, update the quantity and price
+        cart.items[itemIndex].quantity += quantity;
+        cart.items[itemIndex].price = cart.items[itemIndex].quantity * fish.price;
+      } else {
+        // Add a new fish item to the cart
+        cart.items.push({
+          fishId: fishID,
+          quantity,
+          price: fish.price * quantity,
+        });
+      }
+
+      // Recalculate total price
+      cart.totalPrice = cart.items.reduce((total, item) => total + item.price, 0);
+
+      // Save the updated cart
+      await cart.save();
+      res.status(201).json(cart);
+
     } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-});
-
-router.post('/cart', async(req, res) => {
-    const {accID, fishID, quantity} = req.body;
-    try {
-        let cartItem = await CartItem.findOne({accID, fishID});
-        if (cartItem) {
-            cartItem.quantity += quantity
-        } else {
-            cartItem = new CartItem({accID, fishID, quantity});
-        }
-
-        await cartItem.save();
-        res.status(201).json(cartItem);
-    } catch (err) {
-        res.status(500).json({ error: 'An error occurred while adding to the cart.'});
-    }
-});
-
-router.get('/:userID', async(req, res) => {
-    const {userID} = req.params;
-    try {
-        const CartItems = await CartItem.find({ accID: userID}).populate('fishID');
-        res.status(201).json(CartItems);
-    } catch (error) {
-        res.status(400).json({ message: err.message });
-    }
-});
-
-router.delete('/:userID/item/:fishID', async (req, res) => {
-    const {userID, fishID} = req.params;
-    try {
-        const deletedItem = await CartItem.findOneAndDelete({ accID: userID, fishID});
-        if (deletedItem){
-            res.status(201).json({message: "Item removed from cart successfully." });
-        } else {
-            res.status(400).json({ message: "Item now found !" });
-        }
-    } catch (err) {
-        res.status(500).json({message: err.message})
+      console.error("Error while adding to cart:", err);  // Log the actual error
+      res.status(500).json({ error: 'An error occurred while adding to the cart.' });
     }
 });
 

@@ -1,12 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User.model');
-const authMiddleware = require('../middleware/auth'); // Middleware to protect routes
+const authMiddleware = require('../middleware/auth'); 
 
-// Get logged-in user's profile
 router.get('/profile', authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId); // Find user by MongoDB _id
+    const user = await User.findById(req.user.userId); 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -21,14 +20,14 @@ router.get('/profile', authMiddleware, async (req, res) => {
 router.put('/profile', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { name, age, address, description, avt } = req.body; // Receive avatar path from client
+    const { name, age, address, description, avt } = req.body; 
 
-    const updatedData = { name, age, address, description, avt }; // Store the passed avatar filename
+    const updatedData = { name, age, address, description, avt }; 
 
     const updatedUser = await User.findByIdAndUpdate(
-      userId, // Find by MongoDB _id
+      userId, 
       updatedData,
-      { new: true } // Return the updated document
+      { new: true } 
     );
 
     if (!updatedUser) {

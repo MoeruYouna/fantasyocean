@@ -7,11 +7,7 @@ import {
   CardImg,
   Col,
   Container,
-  Input,
   Row,
-  Form,
-  FormGroup,
-  Label,
 } from 'reactstrap';
 import '../assets/css/aquarium_css/detail.css';
 
@@ -41,8 +37,20 @@ const CartPage: React.FC = () => {
 
   useEffect(() => {
     const fetchCartItems = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('You need to log in to view your cart.');
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await axios.get('http://localhost:5000/carts/664d422b63ee97ae2888b892');
+        const response = await axios.get('http://localhost:5000/carts', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         const itemsWithFishData = await Promise.all(
           response.data.map(async (item: CartItem) => {
             const fishResponse = await axios.get(`http://localhost:5000/fishs/fish/${item.fishID._id}`);
@@ -61,8 +69,13 @@ const CartPage: React.FC = () => {
   }, []);
 
   const handleRemoveItem = async (itemId: string) => {
+    const token = localStorage.getItem('token');
     try {
-      await axios.delete(`http://localhost:5000/carts/664d422b63ee97ae2888b892/item/${itemId}`);
+      await axios.delete(`http://localhost:5000/carts/item/${itemId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setCartItems(cartItems.filter((item) => item._id !== itemId));
     } catch (err: any) {
       setError(err.message);
@@ -70,30 +83,21 @@ const CartPage: React.FC = () => {
   };
 
   const handleCheckout = async () => {
+    const token = localStorage.getItem('token');
     try {
-      setLoading(true);
-      // Create a new cart in the database
-      const newCartResponse = await axios.post('http://localhost:5000/carts', { accID: '664d422b63ee97ae2888b892' });
-      const newCartId = newCartResponse.data._id;
-
-      // Add current items to the new cart
-      await Promise.all(
-        cartItems.map((item) =>
-          axios.post(`http://localhost:5000/cartItems`, {
-            cartID: newCartId,
-            fishID: item.fishID._id,
-            quantity: item.quantity,
-          })
-        )
+      const response = await axios.post(
+        'http://localhost:5000/carts/checkout',
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
-
-      // Optionally clear the current cart or update the UI
+      alert('Checkout successful!');
       setCartItems([]);
-      alert('Checkout successful! A new cart has been created.');
-    } catch (err: any) {
-      setError('Failed to complete checkout. Please try again.');
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      alert('Failed to complete checkout. Please try again.');
     }
   };
 
@@ -106,13 +110,6 @@ const CartPage: React.FC = () => {
 
   const formatNumber = (number: number) => {
     return new Intl.NumberFormat('de-DE').format(number);
-  };
-
-  const truncateDescription = (description: string, maxLength: number) => {
-    if (description.length > maxLength) {
-      return description.slice(0, maxLength) + '... read more';
-    }
-    return description;
   };
 
   return (
@@ -134,15 +131,6 @@ const CartPage: React.FC = () => {
                       <div>
                         <p className="mb-1">Shopping cart</p>
                         <p className="mb-0">You have {cartItems.length} items in your cart</p>
-                      </div>
-                      <div>
-                        <p>
-                          <span className="text-muted">Sort by:</span>
-                          <a className="text-body">
-                            price
-                            <i className="fas fa-angle-down mt-1" />
-                          </a>
-                        </p>
                       </div>
                     </div>
 
@@ -171,7 +159,7 @@ const CartPage: React.FC = () => {
                               </div>
                               <div className="col-8">
                                 <p className="small mb-0">
-                                  {truncateDescription(item.fishID.description, 50)}
+                                  {item.fishID.description}
                                 </p>
                               </div>
                             </div>
@@ -207,76 +195,6 @@ const CartPage: React.FC = () => {
                             alt="Avatar"
                           />
                         </div>
-
-                        <p className="small">Card type</p>
-                        <a className="text-white">
-                          <i className="fab fa-cc-mastercard fa-3x me-2" />
-                        </a>
-                        <a className="text-white">
-                          <i className="fab fa-cc-visa fa-3x me-2" />
-                        </a>
-                        <a className="text-white">
-                          <i className="fab fa-cc-paypal fa-3x me-2" />
-                        </a>
-
-                        <Form className="mt-4">
-                          <FormGroup>
-                            <Label for="cardName" className="form-label">
-                              Cardholder's Name
-                            </Label>
-                            <Input
-                              id="cardName"
-                              type="text"
-                              placeholder="Cardholder's Name"
-                              className="form-control-lg"
-                            />
-                          </FormGroup>
-                          <FormGroup>
-                            <Label for="cardNumber" className="form-label">
-                              Card Number
-                            </Label>
-                            <Input
-                              id="cardNumber"
-                              type="text"
-                              placeholder="1234 5678 9012 3457"
-                              className="form-control-lg"
-                              minLength={19}
-                              maxLength={19}
-                            />
-                          </FormGroup>
-                          <Row className="mb-4">
-                            <Col md="6">
-                              <FormGroup>
-                                <Label for="cardExpiration" className="form-label">
-                                  Expiration
-                                </Label>
-                                <Input
-                                  id="cardExpiration"
-                                  type="text"
-                                  placeholder="MM/YYYY"
-                                  className="form-control-lg"
-                                  minLength={7}
-                                  maxLength={7}
-                                />
-                              </FormGroup>
-                            </Col>
-                            <Col md="6">
-                              <FormGroup>
-                                <Label for="cardCvv" className="form-label">
-                                  Cvv
-                                </Label>
-                                <Input
-                                  id="cardCvv"
-                                  type="text"
-                                  placeholder="&#9679;&#9679;&#9679;"
-                                  className="form-control-lg"
-                                  minLength={3}
-                                  maxLength={3}
-                                />
-                              </FormGroup>
-                            </Col>
-                          </Row>
-                        </Form>
 
                         <hr />
 
