@@ -24,6 +24,9 @@ mongoose.connect('mongodb://localhost:27017')
 const fishRouter = require('./routes/Fish.router')
 app.use('/fishs', fishRouter);
 
+const itemRouter = require('./routes/Item.router')
+app.use('/items', itemRouter);
+
 const authRouter = require('./routes/Auth.router');
 app.use('/api/auth', authRouter);
 
@@ -35,6 +38,12 @@ app.use('/carts', cartRouter);
 
 const checkRouter = require('./routes/Checkout.router');
 app.use('/check', checkRouter)
+
+const catFrouter = require('./routes/CatF.router');
+app.use('/catF', catFrouter)
+
+const catIrouter = require('./routes/CatI.router');
+app.use('/catI', catIrouter)
 
 
 // Start the server

@@ -14,7 +14,7 @@ import {
 } from 'reactstrap';
 import '../assets/css/aquarium_css/detail.css';
 
-interface Fish {
+interface Product {
   _id: string;
   name: string;
   description: string;
@@ -28,25 +28,29 @@ interface CarouselItemType {
   caption: string;
 }
 
-const FishDetail: React.FC = () => {
+const ProductDetail: React.FC = () => {
   const { _id } = useParams<{ _id: string }>();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [fish, setFish] = useState<Fish | null>(null);
+  const [product, setProduct] = useState<Product | null>(null);
   const [items, setItems] = useState<CarouselItemType[]>([]);
   const [modal, setModal] = useState<boolean>(false);
   const [modalMessage, setModalMessage] = useState<string>('');
 
-  useEffect(() => {
-    const fetchFish = async () => {
-      try {
-        const response = await axios.get(`http://localhost:5000/fishs/fish/${_id}`);
-        const fishData = response.data;
-        setFish(fishData);
+  const isFish = window.location.pathname.includes('/fish'); // Check if it's a fish or item
 
-        // Set items for the carousel with the image details
-        if (fishData.image) {
-          setItems([{ src: fishData.image, altText: fishData.name, caption: fishData.name }]);
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const url = isFish
+          ? `http://localhost:5000/fishs/${_id}`
+          : `http://localhost:5000/items/${_id}`;
+        const response = await axios.get(url);
+        const productData = response.data;
+        setProduct(productData);
+
+        if (productData.image) {
+          setItems([{ src: productData.image, altText: productData.name, caption: productData.name }]);
         }
       } catch (err: any) {
         setError(err.message);
@@ -55,8 +59,8 @@ const FishDetail: React.FC = () => {
       }
     };
 
-    fetchFish();
-  }, [_id]);
+    fetchProduct();
+  }, [_id, isFish]);
 
   const addToCart = async () => {
     const token = localStorage.getItem('token');
@@ -65,12 +69,12 @@ const FishDetail: React.FC = () => {
       setModal(true);
       return;
     }
-  
+
     try {
       await axios.post(
         'http://localhost:5000/carts/cart',
         {
-          fishID: _id,
+          productID: _id,
           quantity: 1,
         },
         {
@@ -79,15 +83,14 @@ const FishDetail: React.FC = () => {
           },
         }
       );
-      setModalMessage('Fish added to cart successfully!');
+      setModalMessage('Product added to cart successfully!');
     } catch (error) {
-      console.error('Error adding fish to cart:', error);
-      setModalMessage('Failed to add fish. Please try again.');
+      console.error('Error adding product to cart:', error);
+      setModalMessage('Failed to add product. Please try again.');
     } finally {
       setModal(true);
     }
   };
-  
 
   const closeModal = () => {
     setModal(false);
@@ -180,22 +183,18 @@ const FishDetail: React.FC = () => {
   };
 
   return (
-    <Container fluid className="fish-detail">
-      {fish && (
+    <Container fluid className="product-detail">
+      {product && (
         <Row>
           <Col md="6" className="main-image">
             <CarouselSection />
           </Col>
           <Col md="6" className="details">
-            <h1>{fish.name}</h1>
-            <div className="price">{formatNumber(fish.price)} VNĐ</div>
-            <div className="rating">★★★★☆</div>
+            <h1>{product.name}</h1>
+            <div className="price">{formatNumber(product.price)} VNĐ</div>
             <blockquote>
               <p className="blockquote blockquote-info">
-                "{fish.description}"
-                <br />
-                <br />
-                <small>- Noaa</small>
+                "{product.description}"
               </p>
             </blockquote>
             <Button className="btn-round" color="info" type="button" onClick={addToCart}>
@@ -207,7 +206,6 @@ const FishDetail: React.FC = () => {
               <a href="#">Facebook</a>
               <a href="#">Twitter</a>
               <a href="#">LinkedIn</a>
-              <a href="#">Pinterest</a>
             </div>
           </Col>
         </Row>
@@ -231,4 +229,4 @@ const FishDetail: React.FC = () => {
   );
 };
 
-export default FishDetail;
+export default ProductDetail;

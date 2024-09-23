@@ -72,4 +72,37 @@
     border-color: #ffffff;
     transition: .3s linear;
   }
-  
+  /* Container for product cards to ensure uniform height */
+.product-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Ensuring images have a uniform size */
+.product-img {
+  height: 180px; /* Adjust the height as necessary */
+  object-fit: cover;
+}
+
+/* To control card body height and keep text within limit */
+.card-body {
+  flex: 1;
+}
+
+/* Additional margins for spacing between categories and products */
+.mt-4 {
+  margin-top: 20px;
+}
+
+/* Styling the pagination controls */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.pagination-controls button {
+  margin: 0 5px;
+}
