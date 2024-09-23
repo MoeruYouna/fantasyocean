@@ -8,6 +8,7 @@ import {
   Col,
   Container,
   Row,
+  Input,
 } from 'reactstrap';
 import '../assets/css/aquarium_css/detail.css';
 
@@ -64,10 +65,9 @@ const CartPage: React.FC = () => {
         return;
       }
 
-      // Optional decoding logic if you need to extract userId from the token
       const decoded: DecodedToken = decodeToken(token);
       if (decoded) {
-        setUserId(decoded.userId); // Set userId state
+        setUserId(decoded.userId);
       } else {
         setError('Invalid token');
         setLoading(false);
@@ -75,19 +75,21 @@ const CartPage: React.FC = () => {
       }
 
       try {
-        const response = await axios.get(`http://localhost:5000/carts/${decoded.userId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axios.get(
+          `http://localhost:5000/carts/${decoded.userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-        console.log('API Response: ', response.data); // Log the response
+        console.log('API Response: ', response.data);
 
         const cartData = response.data;
 
-        // Since the response is already an array, just set the cartItems directly
         if (Array.isArray(cartData)) {
-          setCartItems(cartData); // No need to map over items array
+          setCartItems(cartData);
         } else {
           setError('Unexpected response format');
         }
@@ -101,15 +103,52 @@ const CartPage: React.FC = () => {
     fetchCartItems();
   }, []);
 
-  const handleRemoveItem = async (itemId: string) => {
+  const handleRemoveItem = async (fishId: string) => {
     const token = localStorage.getItem('token');
+    if (!userId) {
+      setError('User ID is not available');
+      return;
+    }
+
     try {
-      await axios.delete(`http://localhost:5000/carts/item/${itemId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setCartItems(cartItems.filter((item) => item._id !== itemId));
+      await axios.delete(
+        `http://localhost:5000/carts/${userId}/item/${fishId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setCartItems(cartItems.filter((item) => item.fishId._id !== fishId));
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleUpdateQuantity = async (fishId: string, newQuantity: number) => {
+    const token = localStorage.getItem('token');
+    if (!userId) {
+      setError('User ID is not available');
+      return;
+    }
+
+    if (newQuantity < 1) return; // Quantity cannot be less than 1
+    try {
+      await axios.put(
+        `http://localhost:5000/carts/${userId}/item/${fishId}`,
+        { quantity: newQuantity },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      // Update the cartItems state with the new quantity
+      setCartItems((prevItems) =>
+        prevItems.map((item) =>
+          item.fishId._id === fishId ? { ...item, quantity: newQuantity } : item
+        )
+      );
     } catch (err: any) {
       setError(err.message);
     }
@@ -143,7 +182,10 @@ const CartPage: React.FC = () => {
   if (error) return <p>Error: {error}</p>;
 
   const calculateTotal = () => {
-    return cartItems.reduce((total, item) => total + item.price, 0);
+    return cartItems.reduce(
+      (total, item) => total + item.fishId.price * item.quantity,
+      0
+    );
   };
 
   const formatNumber = (number: number) => {
@@ -160,9 +202,8 @@ const CartPage: React.FC = () => {
                 <Row>
                   <Col lg="7">
                     <h5>
-                      <a className="text-body">
-                        <i className="fas fa-long-arrow-alt-left me-2" />{' '}
-                        Continue shopping
+                      <a href="/" className="text-body">
+                        <i className="fas fa-long-arrow-alt-left me-2" /> Continue shopping
                       </a>
                     </h5>
                     <hr />
@@ -175,17 +216,14 @@ const CartPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {cartItems.map((item, index) => (
-                      <Card className="mb-3" key={index}>
+                    {cartItems.map((item) => (
+                      <Card className="mb-3" key={item._id}>
                         <CardBody>
                           <div className="d-flex justify-content-between">
                             <div className="d-flex flex-row align-items-center">
                               <div>
                                 <CardImg
-                                  src={
-                                    item.fishId?.image ||
-                                    '/path/to/default/image.jpg'
-                                  }
+                                  src={require(`../assets/img/aquarium/${item.fishId.image}`)}
                                   className="rounded-3"
                                   style={{
                                     width: '80px',
@@ -211,19 +249,45 @@ const CartPage: React.FC = () => {
                               </div>
                             </div>
                             <div className="d-flex flex-row align-items-center">
-                              <div style={{ width: '50px' }}>
-                                <h5 className="fw-normal mb-0">
-                                  {item.quantity}
+                              <div className="d-flex align-items-center">
+                                <Button
+                                  color="secondary"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleUpdateQuantity(item.fishId._id, item.quantity - 1)
+                                  }
+                                  disabled={item.quantity <= 1}
+                                >
+                                  -
+                                </Button>
+                                <Input
+                                  type="text"
+                                  value={item.quantity}
+                                  readOnly
+                                  style={{
+                                    width: '50px',
+                                    textAlign: 'center',
+                                    margin: '0 5px',
+                                  }}
+                                />
+                                <Button
+                                  color="secondary"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleUpdateQuantity(item.fishId._id, item.quantity + 1)
+                                  }
+                                >
+                                  +
+                                </Button>
+                              </div>
+                              <div style={{ width: '100px', textAlign: 'right' }}>
+                                <h5 className="mb-0">
+                                  {formatNumber(item.fishId.price * item.quantity)} VNĐ
                                 </h5>
                               </div>
-                              <div style={{ width: '80px' }}>
-                                <h3 className="mb-0">
-                                  {formatNumber(item.fishId.price)} VNĐ
-                                </h3>
-                              </div>
                               <a
-                                onClick={() => handleRemoveItem(item._id)}
-                                style={{ color: '#cecece' }}
+                                onClick={() => handleRemoveItem(item.fishId._id)}
+                                style={{ color: '#cecece', cursor: 'pointer', marginLeft: '15px' }}
                               >
                                 <i className="fas fa-trash-alt" />
                               </a>
@@ -238,7 +302,7 @@ const CartPage: React.FC = () => {
                     <Card className="bg-info text-white rounded-3">
                       <CardBody>
                         <div className="d-flex justify-content-between align-items-center mb-4">
-                          <h5 className="mb-0">Card details</h5>
+                          <h5 className="mb-0">Order Summary</h5>
                           <CardImg
                             src={require('../assets/img/aquarium/Logo.png')}
                             className="rounded-3"
@@ -258,7 +322,7 @@ const CartPage: React.FC = () => {
 
                         <div className="d-flex justify-content-between">
                           <p className="mb-2">Shipping</p>
-                          <p className="mb-2">20.000 VNĐ</p>
+                          <p className="mb-2">20,000 VNĐ</p>
                         </div>
 
                         <div className="d-flex justify-content-between">
@@ -273,6 +337,7 @@ const CartPage: React.FC = () => {
                           block
                           size="lg"
                           onClick={handleCheckout}
+                          disabled={cartItems.length === 0}
                         >
                           <div className="d-flex justify-content-between">
                             <span>

@@ -116,4 +116,51 @@ router.delete('/:userID/item/:fishID', async (req, res) => {
   }
 });
 
+router.put('/:userID/item/:fishID', async (req, res) => {
+  const { userID, fishID } = req.params;
+  const { quantity } = req.body;
+
+  // Validate userID and fishID
+  if (!isValidObjectId(userID)) {
+    return res.status(400).json({ error: "Invalid userID format" });
+  }
+  if (!isValidObjectId(fishID)) {
+    return res.status(400).json({ error: "Invalid fishID format" });
+  }
+
+  if (quantity < 1) {
+    return res.status(400).json({ error: "Quantity must be at least 1" });
+  }
+
+  try {
+    const cart = await Cart.findOne({ userId: userID });
+    if (!cart) {
+      return res.status(404).json({ message: "Cart not found" });
+    }
+
+    const item = cart.items.find((item) => item.fishId.equals(fishID));
+    if (item) {
+      // Update the quantity and price
+      const fish = await Fish.findById(fishID);
+      if (!fish) {
+        return res.status(404).json({ error: "Fish not found" });
+      }
+
+      item.quantity = quantity;
+      item.price = fish.price * quantity;
+
+      // Recalculate total price
+      cart.totalPrice = cart.items.reduce((total, item) => total + item.price, 0);
+
+      await cart.save();
+      return res.status(200).json({ message: "Quantity updated successfully." });
+    } else {
+      return res.status(404).json({ message: "Item not found in cart!" });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
 module.exports = router;
