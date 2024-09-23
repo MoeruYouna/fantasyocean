@@ -1,7 +1,19 @@
 import React, { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Button, Card, CardBody, CardHeader, Input, Container, Col, Form, FormGroup } from 'reactstrap';
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Input,
+  Container,
+  Col,
+  Form,
+  FormGroup,
+  Row,
+  Label,
+} from 'reactstrap';
 
 interface UserProfile {
   name: string;
@@ -93,115 +105,154 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className='backGround' style={{backgroundImage: `url(${require('../assets/img/bg8.jpg')})`}}>
-    <Container className="mt-5">
-      <Col className="ml-auto mr-auto" md="6">
-        <Card className="card-user">
-          <CardHeader className="text-center">
-            <div className="profile-container">
-              {user?.avt ? (
-                <img
-                  src={require(`../assets/img/profile/${user?.avt}`)}
-                  alt="Profile Avatar"
-                  className="rounded-circle"
-                  style={{ width: '150px', height: '150px' }}
-                />
-              ) : (
-                <div className="default-avatar">
-                  <i className="now-ui-icons users_circle-08" style={{ fontSize: '50px' }}></i>
+    <div
+      className="d-flex align-items-center justify-content-center"
+      style={{
+        backgroundImage: `url(${require('../assets/img/bg8.jpg')})`,
+        backgroundSize: 'cover',
+        minHeight: '100vh',
+        padding: '5rem 0',  // Add padding to ensure equal spacing at the top and bottom
+      }}
+    >
+      <Container>
+        <Row className="justify-content-center">
+          <Col md="8">
+            <Card className="shadow-lg">
+              <CardHeader className="text-center" style={{ backgroundColor: 'rgb(55, 162, 245)', color: '#fff' }}>
+                <div className="d-flex justify-content-center">
+                  {user?.avt ? (
+                    <img
+                      src={require(`../assets/img/profile/${user.avt}`)}
+                      alt="Profile Avatar"
+                      className="rounded-circle"
+                      style={{ width: '150px', height: '150px', objectFit: 'cover', border: '5px solid #fff' }}
+                    />
+                  ) : (
+                    <div className="rounded-circle bg-light d-flex justify-content-center align-items-center" style={{ width: '150px', height: '150px' }}>
+                      <i className="now-ui-icons users_circle-08" style={{ fontSize: '50px' }}></i>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <h4>{user?.name || 'User Name'}</h4>
-            <p>{user?.email}</p>
-          </CardHeader>
+                <h3 className="mt-3">{user?.name || 'User Name'}</h3>
+                <p>{user?.email}</p>
+              </CardHeader>
 
-          <CardBody>
-            {errorMessage && <p className="text-danger">{errorMessage}</p>}
-            {isEditing ? (
-              <Form onSubmit={handleUpdateProfile}>
-                <FormGroup>
-                  <Input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Name"
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <Input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="Email"
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <Input
-                    type="text"
-                    name="age"
-                    value={formData.age?.toString() || ''}
-                    onChange={handleChange}
-                    placeholder="Age"
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <Input
-                    type="text"
-                    name="address"
-                    value={formData.address || ''}
-                    onChange={handleChange}
-                    placeholder="Address"
-                  />
-                </FormGroup>
-                
-                {/* Description Edit */}
-                <FormGroup>
-                  <Input
-                    type="textarea"
-                    name="description"
-                    value={formData.description || ''}
-                    onChange={handleChange}
-                    placeholder="Description"
-                  />
-                </FormGroup>
-
-                {/* Avatar upload */}
-                <FormGroup>
-                  <Input
-                    type="file"
-                    name="avt"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                  />
-                </FormGroup>
-
-                <Button type="submit" color="primary">
-                  Save Changes
-                </Button>
-                <Button color="secondary" onClick={() => setIsEditing(false)}>
-                  Cancel
-                </Button>
-              </Form>
-            ) : (
-              <>
-                <p><strong>Age:</strong> {user?.age || 'N/A'}</p>
-                <p><strong>Address:</strong> {user?.address || 'N/A'}</p>
-                <p><strong>Description:</strong> {user?.description || 'No description available.'}</p>
-                <Button color="warning" onClick={() => setIsEditing(true)}>
-                  Edit Profile
-                </Button>
-                <Button color="danger" onClick={handleLogout}>
-                  Logout
-                </Button>
-              </>
-            )}
-          </CardBody>
-        </Card>
-      </Col>
-    </Container>
+              <CardBody>
+                {errorMessage && <p className="text-danger text-center">{errorMessage}</p>}
+                {isEditing ? (
+                  <Form onSubmit={handleUpdateProfile}>
+                    <Row>
+                      <Col md="6">
+                        <FormGroup>
+                          <Label for="name">Name</Label>
+                          <Input
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            placeholder="Name"
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col md="6">
+                        <FormGroup>
+                          <Label for="email">Email</Label>
+                          <Input
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            placeholder="Email"
+                          />
+                        </FormGroup>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col md="6">
+                        <FormGroup>
+                          <Label for="age">Age</Label>
+                          <Input
+                            type="number"
+                            name="age"
+                            value={formData.age?.toString() || ''}
+                            onChange={handleChange}
+                            placeholder="Age"
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col md="6">
+                        <FormGroup>
+                          <Label for="address">Address</Label>
+                          <Input
+                            type="text"
+                            name="address"
+                            value={formData.address || ''}
+                            onChange={handleChange}
+                            placeholder="Address"
+                          />
+                        </FormGroup>
+                      </Col>
+                    </Row>
+                    <FormGroup>
+                      <Label for="description">Description</Label>
+                      <Input
+                        type="textarea"
+                        name="description"
+                        value={formData.description || ''}
+                        onChange={handleChange}
+                        placeholder="Tell us about yourself"
+                      />
+                    </FormGroup>
+                    <FormGroup>
+                      <Label for="avt">Profile Picture</Label>
+                      <Input
+                        type="file"
+                        name="avt"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                      />
+                    </FormGroup>
+                    <div className="text-center">
+                      <Button type="submit" style={{ backgroundColor: 'rgb(55, 162, 245)' }} className="mr-2">
+                        Save Changes
+                      </Button>
+                      <Button color="secondary" onClick={() => setIsEditing(false)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </Form>
+                ) : (
+                  <>
+                    <Row className="mb-3">
+                      <Col md="6">
+                        <p>
+                          <strong>Age:</strong> {user?.age || 'N/A'}
+                        </p>
+                      </Col>
+                      <Col md="6">
+                        <p>
+                          <strong>Address:</strong> {user?.address || 'N/A'}
+                        </p>
+                      </Col>
+                    </Row>
+                    <p>
+                      <strong>Description:</strong> {user?.description || 'No description available.'}
+                    </p>
+                    <div className="text-center">
+                      <Button style={{ backgroundColor: 'rgb(55, 162, 245)' }} className="mr-2" onClick={() => setIsEditing(true)}>
+                        Edit Profile
+                      </Button>
+                      <Button color="danger" onClick={handleLogout}>
+                        Logout
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
     </div>
   );
 };
