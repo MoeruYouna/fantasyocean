@@ -6,35 +6,42 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Email is required'],
     trim: true,
-    lowercase: true,  // Always store email in lowercase
-    unique: true,  // Make sure email is unique
-    match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address'], // Add validation
+    lowercase: true,
+    unique: true,
+    match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address'], 
   },
+
   name: {
     type: String,
     required: true,
   },
+
   password: {
     type: String,
     required: true,
   },
+
   age: {
     type: Number,
     required: true,
     default: 0,
   },
+
   address: {
     type: String,
     default: '',
   },
+
   avt: {
     type: String,
     default: '',
   },
+
   description: {
     type: String,
     default: '',
   },
+
   role: {
     type: String,
     required: true,
@@ -52,9 +59,10 @@ userSchema.pre('save', async function(next) {
       return next(err);
     }
   }
-  this.email = this.email.toLowerCase();  // Normalize email to lowercase
+  this.email = this.email.toLowerCase();
   next();
 });
 
 const User = mongoose.model('User', userSchema);
+
 module.exports = User;

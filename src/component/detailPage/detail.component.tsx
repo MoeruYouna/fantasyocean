@@ -59,14 +59,27 @@ const FishDetail: React.FC = () => {
   }, [_id]);
 
   const addToCart = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setModalMessage('You need to log in to add items to the cart.');
+      setModal(true);
+      return;
+    }
+  
     try {
-      const response = await axios.post('http://localhost:5000/carts/cart', {
-        fishID: _id,
-        accID: '664d422b63ee97ae2888b892', // Replace with actual account ID
-        quantity: 1,
-      });
-      console.log('Fish added to cart:', response.data);
-      setModalMessage('Add fish to cart successfully!');
+      await axios.post(
+        'http://localhost:5000/carts/cart',
+        {
+          fishID: _id,
+          quantity: 1,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Send token in Authorization header
+          },
+        }
+      );
+      setModalMessage('Fish added to cart successfully!');
     } catch (error) {
       console.error('Error adding fish to cart:', error);
       setModalMessage('Failed to add fish. Please try again.');
@@ -74,12 +87,10 @@ const FishDetail: React.FC = () => {
       setModal(true);
     }
   };
+  
 
   const closeModal = () => {
     setModal(false);
-    if (modalMessage === 'Add fish to cart successfully!') {
-      console.log('success');
-    }
   };
 
   const formatNumber = (number: number) => {
@@ -190,9 +201,6 @@ const FishDetail: React.FC = () => {
             <Button className="btn-round" color="info" type="button" onClick={addToCart}>
               <i className="now-ui-icons ui-2_favourite-28"></i>
               Add to Cart
-            </Button>
-            <Button className="btn-icon btn-round" color="info" type="button">
-              <i className="now-ui-icons ui-2_favourite-28"></i>
             </Button>
             <div className="share">
               Share:

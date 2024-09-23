@@ -33,6 +33,9 @@ app.use('/api/user', userRouter);
 const cartRouter = require('./routes/Cart.router');
 app.use('/carts', cartRouter);
 
+const checkRouter = require('./routes/Checkout.router');
+app.use('/check', checkRouter)
+
 
 // Start the server
 app.listen(PORT, () => {

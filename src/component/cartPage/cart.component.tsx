@@ -7,17 +7,39 @@ import {
   CardImg,
   Col,
   Container,
-  Input,
   Row,
-  Form,
-  FormGroup,
-  Label,
+  Input,
 } from 'reactstrap';
 import '../assets/css/aquarium_css/detail.css';
 
+// Helper function to manually decode JWT (if needed)
+const decodeToken = (token: string) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(function (c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    return null;
+  }
+};
+
+interface DecodedToken {
+  userId: string;
+  iat: number;
+  exp: number;
+}
+
 interface CartItem {
   _id: string;
-  fishID: {
+  fishId: {
     _id: string;
     name: string;
     description: string;
@@ -25,31 +47,52 @@ interface CartItem {
     image: string;
   };
   quantity: number;
-  fish?: {
-    _id: string;
-    name: string;
-    description: string;
-    price: number;
-    image: string;
-  };
+  price: number;
 }
 
 const CartPage: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCartItems = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('You need to log in to view your cart.');
+        setLoading(false);
+        return;
+      }
+
+      const decoded: DecodedToken = decodeToken(token);
+      if (decoded) {
+        setUserId(decoded.userId);
+      } else {
+        setError('Invalid token');
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await axios.get('http://localhost:5000/carts/664d422b63ee97ae2888b892');
-        const itemsWithFishData = await Promise.all(
-          response.data.map(async (item: CartItem) => {
-            const fishResponse = await axios.get(`http://localhost:5000/fishs/fish/${item.fishID._id}`);
-            return { ...item, fish: fishResponse.data };
-          })
+        const response = await axios.get(
+          `http://localhost:5000/carts/${decoded.userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
-        setCartItems(itemsWithFishData);
+
+        console.log('API Response: ', response.data);
+
+        const cartData = response.data;
+
+        if (Array.isArray(cartData)) {
+          setCartItems(cartData);
+        } else {
+          setError('Unexpected response format');
+        }
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -60,40 +103,78 @@ const CartPage: React.FC = () => {
     fetchCartItems();
   }, []);
 
-  const handleRemoveItem = async (itemId: string) => {
+  const handleRemoveItem = async (fishId: string) => {
+    const token = localStorage.getItem('token');
+    if (!userId) {
+      setError('User ID is not available');
+      return;
+    }
+
     try {
-      await axios.delete(`http://localhost:5000/carts/664d422b63ee97ae2888b892/item/${itemId}`);
-      setCartItems(cartItems.filter((item) => item._id !== itemId));
+      await axios.delete(
+        `http://localhost:5000/carts/${userId}/item/${fishId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setCartItems(cartItems.filter((item) => item.fishId._id !== fishId));
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleUpdateQuantity = async (fishId: string, newQuantity: number) => {
+    const token = localStorage.getItem('token');
+    if (!userId) {
+      setError('User ID is not available');
+      return;
+    }
+
+    if (newQuantity < 1) return; // Quantity cannot be less than 1
+    try {
+      await axios.put(
+        `http://localhost:5000/carts/${userId}/item/${fishId}`,
+        { quantity: newQuantity },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      // Update the cartItems state with the new quantity
+      setCartItems((prevItems) =>
+        prevItems.map((item) =>
+          item.fishId._id === fishId ? { ...item, quantity: newQuantity } : item
+        )
+      );
     } catch (err: any) {
       setError(err.message);
     }
   };
 
   const handleCheckout = async () => {
+    const token = localStorage.getItem('token');
     try {
-      setLoading(true);
-      // Create a new cart in the database
-      const newCartResponse = await axios.post('http://localhost:5000/carts', { accID: '664d422b63ee97ae2888b892' });
-      const newCartId = newCartResponse.data._id;
-
-      // Add current items to the new cart
-      await Promise.all(
-        cartItems.map((item) =>
-          axios.post(`http://localhost:5000/cartItems`, {
-            cartID: newCartId,
-            fishID: item.fishID._id,
-            quantity: item.quantity,
-          })
-        )
+      const response = await axios.post(
+        'http://localhost:5000/check',
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
-      // Optionally clear the current cart or update the UI
-      setCartItems([]);
-      alert('Checkout successful! A new cart has been created.');
-    } catch (err: any) {
-      setError('Failed to complete checkout. Please try again.');
-    } finally {
-      setLoading(false);
+      if (response.status === 200) {
+        alert('Checkout successful!');
+        setCartItems([]);
+      } else {
+        alert('Checkout failed. Please try again.');
+      }
+    } catch (err) {
+      alert('Failed to complete checkout. Please try again.');
     }
   };
 
@@ -101,18 +182,14 @@ const CartPage: React.FC = () => {
   if (error) return <p>Error: {error}</p>;
 
   const calculateTotal = () => {
-    return cartItems.reduce((total, item) => total + item.fishID.price * item.quantity, 0);
+    return cartItems.reduce(
+      (total, item) => total + item.fishId.price * item.quantity,
+      0
+    );
   };
 
   const formatNumber = (number: number) => {
     return new Intl.NumberFormat('de-DE').format(number);
-  };
-
-  const truncateDescription = (description: string, maxLength: number) => {
-    if (description.length > maxLength) {
-      return description.slice(0, maxLength) + '... read more';
-    }
-    return description;
   };
 
   return (
@@ -125,7 +202,7 @@ const CartPage: React.FC = () => {
                 <Row>
                   <Col lg="7">
                     <h5>
-                      <a className="text-body">
+                      <a href="/" className="text-body">
                         <i className="fas fa-long-arrow-alt-left me-2" /> Continue shopping
                       </a>
                     </h5>
@@ -133,58 +210,84 @@ const CartPage: React.FC = () => {
                     <div className="d-flex justify-content-between align-items-center mb-4">
                       <div>
                         <p className="mb-1">Shopping cart</p>
-                        <p className="mb-0">You have {cartItems.length} items in your cart</p>
-                      </div>
-                      <div>
-                        <p>
-                          <span className="text-muted">Sort by:</span>
-                          <a className="text-body">
-                            price
-                            <i className="fas fa-angle-down mt-1" />
-                          </a>
+                        <p className="mb-0">
+                          You have {cartItems.length} items in your cart
                         </p>
                       </div>
                     </div>
 
-                    {cartItems.map((item, index) => (
-                      <Card className="mb-3" key={index}>
+                    {cartItems.map((item) => (
+                      <Card className="mb-3" key={item._id}>
                         <CardBody>
                           <div className="d-flex justify-content-between">
                             <div className="d-flex flex-row align-items-center">
                               <div>
                                 <CardImg
-                                  src={
-                                    item.fishID.image
-                                      ? require(`../assets/img/aquarium/${item.fishID.image}`)
-                                      : ''
-                                  }
+                                  src={require(`../assets/img/aquarium/${item.fishId.image}`)}
                                   className="rounded-3"
-                                  style={{ width: '80px', paddingRight: '1rem' }}
+                                  style={{
+                                    width: '80px',
+                                    paddingRight: '1rem',
+                                  }}
                                   alt="Shopping item"
                                 />
                               </div>
                               <div
                                 className="ms-3 mb-0"
-                                style={{ width: '80px', paddingLeft: '.5rem', paddingTop: '.7rem' }}
+                                style={{
+                                  width: '80px',
+                                  paddingLeft: '.5rem',
+                                  paddingTop: '.7rem',
+                                }}
                               >
-                                <h5>{item.fishID.name}</h5>
+                                <h5>{item.fishId.name}</h5>
                               </div>
                               <div className="col-8">
                                 <p className="small mb-0">
-                                  {truncateDescription(item.fishID.description, 50)}
+                                  {item.fishId.description}
                                 </p>
                               </div>
                             </div>
                             <div className="d-flex flex-row align-items-center">
-                              <div style={{ width: '50px' }}>
-                                <h5 className="fw-normal mb-0">{item.quantity}</h5>
+                              <div className="d-flex align-items-center">
+                                <Button
+                                  color="secondary"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleUpdateQuantity(item.fishId._id, item.quantity - 1)
+                                  }
+                                  disabled={item.quantity <= 1}
+                                >
+                                  -
+                                </Button>
+                                <Input
+                                  type="text"
+                                  value={item.quantity}
+                                  readOnly
+                                  style={{
+                                    width: '50px',
+                                    textAlign: 'center',
+                                    margin: '0 5px',
+                                  }}
+                                />
+                                <Button
+                                  color="secondary"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleUpdateQuantity(item.fishId._id, item.quantity + 1)
+                                  }
+                                >
+                                  +
+                                </Button>
                               </div>
-                              <div style={{ width: '80px' }}>
-                                <h3 className="mb-0">{formatNumber(item.fishID.price)} VNĐ</h3>
+                              <div style={{ width: '100px', textAlign: 'right' }}>
+                                <h5 className="mb-0">
+                                  {formatNumber(item.fishId.price * item.quantity)} VNĐ
+                                </h5>
                               </div>
                               <a
-                                onClick={() => handleRemoveItem(item._id)}
-                                style={{ color: '#cecece' }}
+                                onClick={() => handleRemoveItem(item.fishId._id)}
+                                style={{ color: '#cecece', cursor: 'pointer', marginLeft: '15px' }}
                               >
                                 <i className="fas fa-trash-alt" />
                               </a>
@@ -199,7 +302,7 @@ const CartPage: React.FC = () => {
                     <Card className="bg-info text-white rounded-3">
                       <CardBody>
                         <div className="d-flex justify-content-between align-items-center mb-4">
-                          <h5 className="mb-0">Card details</h5>
+                          <h5 className="mb-0">Order Summary</h5>
                           <CardImg
                             src={require('../assets/img/aquarium/Logo.png')}
                             className="rounded-3"
@@ -208,98 +311,41 @@ const CartPage: React.FC = () => {
                           />
                         </div>
 
-                        <p className="small">Card type</p>
-                        <a className="text-white">
-                          <i className="fab fa-cc-mastercard fa-3x me-2" />
-                        </a>
-                        <a className="text-white">
-                          <i className="fab fa-cc-visa fa-3x me-2" />
-                        </a>
-                        <a className="text-white">
-                          <i className="fab fa-cc-paypal fa-3x me-2" />
-                        </a>
-
-                        <Form className="mt-4">
-                          <FormGroup>
-                            <Label for="cardName" className="form-label">
-                              Cardholder's Name
-                            </Label>
-                            <Input
-                              id="cardName"
-                              type="text"
-                              placeholder="Cardholder's Name"
-                              className="form-control-lg"
-                            />
-                          </FormGroup>
-                          <FormGroup>
-                            <Label for="cardNumber" className="form-label">
-                              Card Number
-                            </Label>
-                            <Input
-                              id="cardNumber"
-                              type="text"
-                              placeholder="1234 5678 9012 3457"
-                              className="form-control-lg"
-                              minLength={19}
-                              maxLength={19}
-                            />
-                          </FormGroup>
-                          <Row className="mb-4">
-                            <Col md="6">
-                              <FormGroup>
-                                <Label for="cardExpiration" className="form-label">
-                                  Expiration
-                                </Label>
-                                <Input
-                                  id="cardExpiration"
-                                  type="text"
-                                  placeholder="MM/YYYY"
-                                  className="form-control-lg"
-                                  minLength={7}
-                                  maxLength={7}
-                                />
-                              </FormGroup>
-                            </Col>
-                            <Col md="6">
-                              <FormGroup>
-                                <Label for="cardCvv" className="form-label">
-                                  Cvv
-                                </Label>
-                                <Input
-                                  id="cardCvv"
-                                  type="text"
-                                  placeholder="&#9679;&#9679;&#9679;"
-                                  className="form-control-lg"
-                                  minLength={3}
-                                  maxLength={3}
-                                />
-                              </FormGroup>
-                            </Col>
-                          </Row>
-                        </Form>
-
                         <hr />
 
                         <div className="d-flex justify-content-between">
                           <p className="mb-2">Subtotal</p>
-                          <p className="mb-2">{formatNumber(calculateTotal())} VNĐ</p>
+                          <p className="mb-2">
+                            {formatNumber(calculateTotal())} VNĐ
+                          </p>
                         </div>
 
                         <div className="d-flex justify-content-between">
                           <p className="mb-2">Shipping</p>
-                          <p className="mb-2">20.000 VNĐ</p>
+                          <p className="mb-2">20,000 VNĐ</p>
                         </div>
 
                         <div className="d-flex justify-content-between">
                           <p className="mb-2">Total (Incl. taxes)</p>
-                          <p className="mb-2">{formatNumber(calculateTotal() + 20000)} VNĐ</p>
+                          <p className="mb-2">
+                            {formatNumber(calculateTotal() + 20000)} VNĐ
+                          </p>
                         </div>
 
-                        <Button color="primary" block size="lg" onClick={handleCheckout}>
+                        <Button
+                          color="primary"
+                          block
+                          size="lg"
+                          onClick={handleCheckout}
+                          disabled={cartItems.length === 0}
+                        >
                           <div className="d-flex justify-content-between">
-                            <span>{formatNumber(calculateTotal() + 20000)} VNĐ</span>
                             <span>
-                              Checkout <i className="fas fa-long-arrow-alt-right ms-2" />
+                              {formatNumber(calculateTotal() + 20000)} VNĐ
+                            </span>
+                            <span>
+                              Checkout{' '}
+                              <i className="fas fa-long-arrow-alt-right ms-2" />
                             </span>
                           </div>
                         </Button>
