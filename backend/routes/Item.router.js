@@ -1,18 +1,33 @@
 const express = require('express');
 const router = express.Router();
 const Item = require('../models/Item.model');
+const Category = require('../models/Category_I.model')
 
-// Get all items
 router.get('/', async (req, res) => {
+  const { category } = req.query;
+
   try {
-    const items = await Item.find();
+    let items;
+
+    if (category && category !== 'ALL') {
+      const foundCategory = await Category.findOne({ name: category });
+      if (!foundCategory) {
+        return res.status(404).json({ message: 'Category not found' });
+      }
+
+      items = await Item.find({ catID: foundCategory.id });
+    } else {
+      items = await Item.find();
+    }
+
+    
     res.json(items);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-router.get('/item/:id', async (req, res) => {
+router.get('/:id', async (req, res) => {
   const { id } = req.params;
   try {
     const item = await Item.findById(id);
@@ -27,18 +42,25 @@ router.get('/item/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const item = new Item({
-    name: req.body.name,
-    category: req.body.category,
-    image: req.body.image,
-    description: req.body.description,
-    price: req.body.price,
-    quantity: req.body.quantity,
-  });
+  const { name, categoryName, image, description, price, quantity } = req.body;
 
   try {
+    const category = await Category.findOne({ name: categoryName });
+    if (!category) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+
+    const item = new Item({
+      name,
+      catID: category._id,
+      image,
+      description,
+      price,
+      quantity
+    });
+
     const newItem = await item.save();
-    res.status(201).json(newItem);
+    res.status(201).json(newItem)
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
