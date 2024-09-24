@@ -80,4 +80,38 @@ router.delete('/delete/:_id', async (req, res) => {
   }
 });
 
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, categoryName, image, description, price, quantity } = req.body;
+
+  try {
+    const category = await Category.findOne({ name: categoryName });
+    if (!category) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+
+    // Update the item with the new values
+    const updatedFish = await Fish.findByIdAndUpdate(
+      id,
+      {
+        name,
+        catID: category._id, // Update the category ID if the categoryName changes
+        image,
+        description,
+        price,
+        quantity
+      },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedFish) {
+      return res.status(404).json({ message: 'Fish not found' });
+    }
+
+    res.json(updatedFish);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

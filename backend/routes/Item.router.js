@@ -81,4 +81,39 @@ router.delete('/item/delete/:_id', async (req, res) => {
   }
 });
 
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, categoryName, image, description, price, quantity } = req.body;
+
+  try {
+    // Find the category based on the categoryName
+    const category = await Category.findOne({ name: categoryName });
+    if (!category) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+
+    // Update the item with the new values
+    const updatedItem = await Item.findByIdAndUpdate(
+      id,
+      {
+        name,
+        catID: category._id, // Update the category ID if the categoryName changes
+        image,
+        description,
+        price,
+        quantity
+      },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedItem) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    res.json(updatedItem);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

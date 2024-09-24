@@ -133,7 +133,9 @@ const AdminPage: React.FC = () => {
                 <td>{fish.description}</td>
                 <td>{fish.price}</td>
                 <td>
-                  <button className="btn-sua">Edit</button>
+                  <Link to={`/admin/editFish/${fish._id}`}>
+                    <button className="btn-sua">Edit</button>
+                  </Link>
                   <button className="btn-xoa" onClick={() => openDeleteModal(fish._id, 'fish')}>
                     Delete
                   </button>
@@ -157,7 +159,9 @@ const AdminPage: React.FC = () => {
                 <td>{item.description}</td>
                 <td>{item.price}</td>
                 <td>
-                  <button className="btn-sua">Edit</button>
+                  <Link to={`/admin/editItem/${item._id}`}>
+                    <button className="btn-sua">Edit</button>
+                  </Link>
                   <button className="btn-xoa" onClick={() => openDeleteModal(item._id, 'item')}>
                     Delete
                   </button>
