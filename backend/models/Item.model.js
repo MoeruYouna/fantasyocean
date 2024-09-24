@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const FishSchema = new mongoose.Schema({
+const ItemSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
@@ -8,7 +8,7 @@ const FishSchema = new mongoose.Schema({
 
     catID: {
         type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Category F', 
+        ref: 'Category I', 
         required: true,
     },
 
@@ -26,13 +26,13 @@ const FishSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    
+
     quantity: {
         type: Number,
         required: true,
     }
 });
 
-const Fish = mongoose.model('Fish', FishSchema);
+const Item = mongoose.model('Item', ItemSchema);
 
-module.exports = Fish;
+module.exports = Item;

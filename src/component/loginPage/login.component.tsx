@@ -9,8 +9,6 @@ import {
   CardFooter,
   Form,
   Input,
-  Modal,
-  ModalBody,
   InputGroupAddon,
   InputGroupText,
   InputGroup,
@@ -29,17 +27,12 @@ const LoginPage: React.FC = () => {
     email: false,
     password: false,
   });
-  const [modal, setModal] = useState<boolean>(false);
-  const [modalMessage, setModalMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     document.body.classList.add('login-page', 'sidebar-collapse');
-    document.documentElement.classList.remove('nav-open');
-    window.scrollTo(0, 0);
-    document.body.scrollTop = 0;
     return () => {
       document.body.classList.remove('login-page', 'sidebar-collapse');
     };
@@ -53,36 +46,29 @@ const LoginPage: React.FC = () => {
     }));
   };
 
-  const handleFocus = (field: string, focused: boolean) => {
-    setIsFocused((prev) => ({
-      ...prev,
-      [field]: focused,
-    }));
-  };
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage('');
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', {
-        email: formData.email,
-        password: formData.password,
-      });
-
-      const { token } = response.data;
-      localStorage.setItem('token', token); 
-      setModalMessage('Account login successfully!');
-      navigate('/dashboard');
+      const response = await axios.post('http://localhost:5000/api/auth/login', formData);
+      const { token, role } = response.data;
+      localStorage.setItem('token', token); // Store token in local storage
+  
+      // Check the role and navigate
+      if (role === 'admin') {
+        navigate('/admin');  // Redirect to admin page
+      } else {
+        navigate('/dashboard');  // Redirect to user dashboard
+      }
     } catch (error: any) {
-      console.error('Login error:', error); // Log error for debugging
-      setModalMessage('Failed to login account. Please try again.');
+      console.error('Login error:', error);
       setErrorMessage(error.response?.data?.message || 'Invalid email or password');
     } finally {
       setIsLoading(false);
-      setModal(true);
     }
   };
+  
 
   return (
     <div className="page-header clear-filter" filter-color="blue">
@@ -120,8 +106,8 @@ const LoginPage: React.FC = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      onFocus={() => handleFocus('email', true)}
-                      onBlur={() => handleFocus('email', false)}
+                      onFocus={() => setIsFocused((prev) => ({ ...prev, email: true }))}
+                      onBlur={() => setIsFocused((prev) => ({ ...prev, email: false }))}
                     />
                   </InputGroup>
                   <InputGroup
@@ -133,13 +119,13 @@ const LoginPage: React.FC = () => {
                       </InputGroupText>
                     </InputGroupAddon>
                     <Input
-                      placeholder="Password..."
+                      placeholder="Password"
                       type="password"
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      onFocus={() => handleFocus('password', true)}
-                      onBlur={() => handleFocus('password', false)}
+                      onFocus={() => setIsFocused((prev) => ({ ...prev, password: true }))}
+                      onBlur={() => setIsFocused((prev) => ({ ...prev, password: false }))}
                     />
                   </InputGroup>
                   {errorMessage && <p className="text-danger">{errorMessage}</p>}
@@ -155,43 +141,11 @@ const LoginPage: React.FC = () => {
                   >
                     {isLoading ? 'Logging in...' : 'Log In'}
                   </Button>
-                  <div className="pull-left">
-                    <h6>
-                      <a className="link" href="/register">
-                        Create Account
-                      </a>
-                    </h6>
-                  </div>
-                  <div className="pull-right">
-                    <h6>
-                      <a className="link" href="#pablo" onClick={(e) => e.preventDefault()}>
-                        Need Help?
-                      </a>
-                    </h6>
-                  </div>
                 </CardFooter>
               </Form>
             </Card>
           </Col>
         </Container>
-        <Modal
-          modalClassName="modal-mini modal-info"
-          isOpen={modal}
-        >
-          <div className="modal-header justify-content-center">
-            <div className="modal-profile">
-              <i className="now-ui-icons users_circle-08"></i>
-            </div>
-          </div>
-          <ModalBody>
-            <p>{modalMessage}</p>
-          </ModalBody>
-          <div className="modal-footer">
-            <Button className="btn-neutral" color="link" >
-              Close
-            </Button>
-          </div>
-        </Modal>
       </div>
     </div>
   );

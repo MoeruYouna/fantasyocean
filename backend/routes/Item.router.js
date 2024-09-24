@@ -1,40 +1,41 @@
 const express = require('express');
 const router = express.Router();
-const Fish = require('../models/Fish.model');
-const Category = require('../models/Category_F.model');
+const Item = require('../models/Item.model');
+const Category = require('../models/Category_I.model')
 
 router.get('/', async (req, res) => {
   const { category } = req.query;
 
   try {
-    let fishs;
+    let items;
 
-    if (category && category !== 'All') {
+    if (category && category !== 'ALL') {
       const foundCategory = await Category.findOne({ name: category });
       if (!foundCategory) {
         return res.status(404).json({ message: 'Category not found' });
       }
 
-      fishs = await Fish.find({ catID: foundCategory._id });
+      items = await Item.find({ catID: foundCategory.id });
     } else {
-      fishs = await Fish.find();
+      items = await Item.find();
     }
 
-    res.json(fishs);
+    
+    res.json(items);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// Get a specific fish by ID
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
+  console.log(`Received request for item ID: ${req.params.id}`);
   try {
-    const fish = await Fish.findById(id);
-    if (fish) {
-      res.json(fish);
+    const item = await Item.findById(id);
+    if (item) {
+      res.json(item);
     } else {
-      res.status(404).json({ message: 'Fish not found' });
+      res.status(404).json({ message: 'Item not found' });
     }
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -54,7 +55,7 @@ router.post('/', async (req, res) => {
       return res.status(404).json({ message: 'Category not found' });
     }
 
-    const fish = new Fish({
+    const item = new Item({
       name,
       catID: category._id,
       image,
@@ -63,21 +64,21 @@ router.post('/', async (req, res) => {
       quantity
     });
 
-    const newFish = await fish.save();
-    res.status(201).json(newFish);
+    const newItem = await item.save();
+    res.status(201).json(newItem);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
 
-router.delete('/delete/:_id', async (req, res) => {
+router.delete('/item/delete/:_id', async (req, res) => {
   const { _id } = req.params;
   try {
-    const deletedItem = await Fish.findOneAndDelete({ _id });
+    const deletedItem = await Item.findOneAndDelete({ _id });
     if (deletedItem) {
-      res.status(200).json({ message: 'Fish item deleted successfully.' });
+      res.status(200).json({ message: 'Item deleted successfully.' });
     } else {
-      res.status(404).json({ message: 'Fish item not found.' });
+      res.status(404).json({ message: 'Item not found.' });
     }
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -85,10 +86,10 @@ router.delete('/delete/:_id', async (req, res) => {
 });
 
 router.put('/:id', async (req, res) => {
-  const { id } = req.params; // Extract 'id' from the URL parameters
+  const { id } = req.params; 
   const { name, categoryName, image, description, price, quantity } = req.body;
 
-  // Validate that price and quantity are not negative
+  // Validate that price and quantity are non-negative
   if (price <= 0 || quantity <= 0) {
     return res.status(400).json({ message: 'Price and quantity must be non-negative.' });
   }
@@ -99,8 +100,8 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Category not found' });
     }
 
-    const updatedFish = await Fish.findByIdAndUpdate(
-      id, // Use 'id' from req.params here
+    const updatedItem = await Item.findByIdAndUpdate(
+      id,  
       {
         name,
         catID: category._id,
@@ -109,17 +110,18 @@ router.put('/:id', async (req, res) => {
         price,
         quantity,
       },
-      { new: true } // Return the updated document
+      { new: true } 
     );
 
-    if (!updatedFish) {
-      return res.status(404).json({ message: 'Fish not found' });
+    if (!updatedItem) {
+      return res.status(404).json({ message: 'Item not found' });
     }
 
-    res.json(updatedFish);
+    res.json(updatedItem);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
+
 
 module.exports = router;

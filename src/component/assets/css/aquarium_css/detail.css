@@ -1,55 +1,154 @@
-.fish-detail {
-    display: flex;
-    flex-direction: row;
-    padding: 20px;
+.product-detail {
+  padding: 40px;
+  animation: fadeIn 0.8s ease-in-out;
+  font-family: 'Poppins', sans-serif; /* Add modern, friendly font */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  
-  .main-image {
-    width: 100%;
-    text-align: center;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .main-image img {
-    width: 100%;
-    max-width: 400px;
+}
+
+.main-image img {
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  max-width: 100%;
+  filter: saturate(120%);
+}
+
+.main-image img:hover {
+  transform: scale(1.05) rotate(1deg);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.details {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.details h1 {
+  font-size: 36px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #333;
+  animation: bounceIn 0.6s ease-in-out;
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
   }
-  
-  .details {
-    width: 50%;
-    padding: 0 20px;
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .details h1 {
-    font-size: 24px;
-    margin-bottom: 10px;
+}
+
+.details .price {
+  font-size: 28px;
+  color: #e74c3c;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.details blockquote {
+  font-size: 18px;
+  color: #555;
+  line-height: 1.6;
+  border-left: 4px solid #007bff;
+  padding-left: 15px;
+  animation: fadeInText 1s ease-in-out;
+}
+
+@keyframes fadeInText {
+  from {
+    opacity: 0;
   }
-  
-  .details .price {
-    font-size: 20px;
-    color: red;
-    margin-bottom: 10px;
+  to {
+    opacity: 1;
   }
-  
-  .details .rating {
-    margin-bottom: 10px;
+}
+
+.btn-round {
+  background-color: #007bff;
+  color: white;
+  padding: 15px 30px;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: 600;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.btn-round:hover {
+  background-color: #0056b3;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.modal-body p {
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.modal-profile {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-header {
+  border-bottom: none;
+}
+
+.modal-footer {
+  justify-content: center;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.rating span {
+  font-size: 24px;
+  margin-left: 10px;
+  color: #f39c12;
+}
+
+@keyframes buttonPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.4);
   }
-  .details .buttons {
-    margin-bottom: 20px;
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.8);
   }
-  
-  .details .buttons button {
-    padding: 10px 20px;
-    margin-right: 10px;
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.4);
   }
-  
-  .details .share {
-    margin-bottom: 20px;
+}
+
+@keyframes glowText {
+  0% {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
   }
-  
-  .details .share a {
-    margin-right: 10px;
-    text-decoration: none;
+  50% {
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
   }
-  
-  
-  
+  100% {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  }
+}

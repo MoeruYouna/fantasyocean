@@ -2,22 +2,20 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User.model');
+const Cart = require('../models/Cart.model')
 const router = express.Router();
 
 router.post('/register', async (req, res) => {
   const { email, name, password, age, address, avt, description } = req.body;
 
   try {
-    // Ensure email is stored in lowercase
     const lowerCaseEmail = email.toLowerCase();
-
-    // Check if the user already exists
+ 
     let user = await User.findOne({ email: lowerCaseEmail });
     if (user) {
       return res.status(400).json({ message: 'Email is already registered' });
     }
 
-    // Create a new user
     user = new User({
       email: lowerCaseEmail,
       name,
@@ -31,7 +29,6 @@ router.post('/register', async (req, res) => {
 
     const savedUser = await user.save();
 
-    // Generate JWT token
     const token = jwt.sign({ userId: savedUser._id }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
@@ -46,32 +43,32 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// Auth Controller - Login Route
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Find the user by email
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if the password matches
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    // Generate JWT token
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '1h',
-    });
+    // Create a JWT token with user role
+    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    res.json({ token, user });
+    // Send role in the response
+    res.status(200).json({ token, role: user.role, message: 'Login successful' });
+
   } catch (error) {
-    console.error('Error during login:', error);
-    res.status(500).json({ message: 'Failed to log in' });
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 module.exports = router;

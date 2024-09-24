@@ -111,24 +111,40 @@ const Dashboard: React.FC = () => {
         backgroundImage: `url(${require('../assets/img/bg8.jpg')})`,
         backgroundSize: 'cover',
         minHeight: '100vh',
-        padding: '5rem 0',  // Add padding to ensure equal spacing at the top and bottom
+        padding: '4rem 0',  // Add padding to ensure equal spacing at the top and bottom
       }}
     >
       <Container>
         <Row className="justify-content-center">
-          <Col md="8">
-            <Card className="shadow-lg">
-              <CardHeader className="text-center" style={{ backgroundColor: 'rgb(55, 162, 245)', color: '#fff' }}>
+          <Col md="5"> {/* Further reduced width for compactness */}
+            <Card className="shadow-lg" style={{ borderRadius: '20px' }}> {/* Increased border-radius */}
+              <CardHeader
+                className="text-center"
+                style={{
+                  backgroundColor: 'rgb(55, 162, 245)',
+                  color: '#fff',
+                  borderTopLeftRadius: '20px', // Rounded top
+                  borderTopRightRadius: '20px',
+                }}
+              >
                 <div className="d-flex justify-content-center">
                   {user?.avt ? (
                     <img
                       src={require(`../assets/img/profile/${user.avt}`)}
                       alt="Profile Avatar"
                       className="rounded-circle"
-                      style={{ width: '150px', height: '150px', objectFit: 'cover', border: '5px solid #fff' }}
+                      style={{
+                        width: '110px', // Further reduced size for compactness
+                        height: '110px',
+                        objectFit: 'cover',
+                        border: '4px solid #fff',
+                        transition: 'transform 0.2s ease',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
                     />
                   ) : (
-                    <div className="rounded-circle bg-light d-flex justify-content-center align-items-center" style={{ width: '150px', height: '150px' }}>
+                    <div className="rounded-circle bg-light d-flex justify-content-center align-items-center" style={{ width: '110px', height: '110px' }}>
                       <i className="now-ui-icons users_circle-08" style={{ fontSize: '50px' }}></i>
                     </div>
                   )}
@@ -142,7 +158,7 @@ const Dashboard: React.FC = () => {
                 {isEditing ? (
                   <Form onSubmit={handleUpdateProfile}>
                     <Row>
-                      <Col md="6">
+                      <Col md="12"> {/* Single column for compact form */}
                         <FormGroup>
                           <Label for="name">Name</Label>
                           <Input
@@ -151,10 +167,9 @@ const Dashboard: React.FC = () => {
                             value={formData.name}
                             onChange={handleChange}
                             placeholder="Name"
+                            className="mb-2"
                           />
                         </FormGroup>
-                      </Col>
-                      <Col md="6">
                         <FormGroup>
                           <Label for="email">Email</Label>
                           <Input
@@ -163,12 +178,9 @@ const Dashboard: React.FC = () => {
                             value={formData.email}
                             onChange={handleChange}
                             placeholder="Email"
+                            className="mb-2"
                           />
                         </FormGroup>
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col md="6">
                         <FormGroup>
                           <Label for="age">Age</Label>
                           <Input
@@ -177,10 +189,9 @@ const Dashboard: React.FC = () => {
                             value={formData.age?.toString() || ''}
                             onChange={handleChange}
                             placeholder="Age"
+                            className="mb-2"
                           />
                         </FormGroup>
-                      </Col>
-                      <Col md="6">
                         <FormGroup>
                           <Label for="address">Address</Label>
                           <Input
@@ -189,29 +200,31 @@ const Dashboard: React.FC = () => {
                             value={formData.address || ''}
                             onChange={handleChange}
                             placeholder="Address"
+                            className="mb-2"
+                          />
+                        </FormGroup>
+                        <FormGroup>
+                          <Label for="description">Description</Label>
+                          <Input
+                            type="textarea"
+                            name="description"
+                            value={formData.description || ''}
+                            onChange={handleChange}
+                            placeholder="Tell us about yourself"
+                            className="mb-2"
+                          />
+                        </FormGroup>
+                        <FormGroup>
+                          <Label for="avt">Profile Picture</Label>
+                          <Input
+                            type="file"
+                            name="avt"
+                            accept="image/*"
+                            onChange={handleFileChange}
                           />
                         </FormGroup>
                       </Col>
                     </Row>
-                    <FormGroup>
-                      <Label for="description">Description</Label>
-                      <Input
-                        type="textarea"
-                        name="description"
-                        value={formData.description || ''}
-                        onChange={handleChange}
-                        placeholder="Tell us about yourself"
-                      />
-                    </FormGroup>
-                    <FormGroup>
-                      <Label for="avt">Profile Picture</Label>
-                      <Input
-                        type="file"
-                        name="avt"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                      />
-                    </FormGroup>
                     <div className="text-center">
                       <Button type="submit" style={{ backgroundColor: 'rgb(55, 162, 245)' }} className="mr-2">
                         Save Changes
@@ -223,7 +236,7 @@ const Dashboard: React.FC = () => {
                   </Form>
                 ) : (
                   <>
-                    <Row className="mb-3">
+                    <Row className="mb-2">
                       <Col md="6">
                         <p>
                           <strong>Age:</strong> {user?.age || 'N/A'}

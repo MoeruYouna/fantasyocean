@@ -9,10 +9,14 @@ import {
   Container,
   Row,
   Input,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
 } from 'reactstrap';
 import '../assets/css/aquarium_css/detail.css';
 
-// Helper function to manually decode JWT (if needed)
+// Helper function to decode JWT
 const decodeToken = (token: string) => {
   try {
     const base64Url = token.split('.')[1];
@@ -39,22 +43,29 @@ interface DecodedToken {
 
 interface CartItem {
   _id: string;
-  fishId: {
+  productType: string; // 'Fish' or 'Item'
+  productId: {
     _id: string;
     name: string;
     description: string;
     price: number;
     image: string;
+    // Include any other product fields
   };
   quantity: number;
   price: number;
 }
 
 const CartPage: React.FC = () => {
+  // State declarations
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+
+  // New state variables for modal
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [itemToRemove, setItemToRemove] = useState<CartItem | null>(null);
 
   useEffect(() => {
     const fetchCartItems = async () => {
@@ -84,12 +95,14 @@ const CartPage: React.FC = () => {
           }
         );
 
-        console.log('API Response: ', response.data);
-
         const cartData = response.data;
+        console.log('API Response:', cartData); // Log the response
 
+        // Adjust the condition to handle array response
         if (Array.isArray(cartData)) {
           setCartItems(cartData);
+        } else if (cartData && cartData.items) {
+          setCartItems(cartData.items);
         } else {
           setError('Unexpected response format');
         }
@@ -103,39 +116,59 @@ const CartPage: React.FC = () => {
     fetchCartItems();
   }, []);
 
-  const handleRemoveItem = async (fishId: string) => {
+  const handleRemoveItem = (item: CartItem) => {
+    setItemToRemove(item);
+    setIsModalOpen(true);
+  };
+
+  const confirmRemoveItem = async () => {
+    if (!itemToRemove) return;
+
     const token = localStorage.getItem('token');
     if (!userId) {
       setError('User ID is not available');
+      setIsModalOpen(false);
       return;
     }
 
     try {
       await axios.delete(
-        `http://localhost:5000/carts/${userId}/item/${fishId}`,
+        `http://localhost:5000/carts/${userId}/product/${itemToRemove.productId._id}/${itemToRemove.productType}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      setCartItems(cartItems.filter((item) => item.fishId._id !== fishId));
+      setCartItems(cartItems.filter((item) => item.productId._id !== itemToRemove.productId._id));
     } catch (err: any) {
       setError(err.message);
+    } finally {
+      setIsModalOpen(false);
+      setItemToRemove(null);
     }
   };
 
-  const handleUpdateQuantity = async (fishId: string, newQuantity: number) => {
+  const cancelRemoveItem = () => {
+    setIsModalOpen(false);
+    setItemToRemove(null);
+  };
+
+  const handleUpdateQuantity = async (
+    productId: string,
+    productType: string,
+    newQuantity: number
+  ) => {
     const token = localStorage.getItem('token');
     if (!userId) {
       setError('User ID is not available');
       return;
     }
 
-    if (newQuantity < 1) return; // Quantity cannot be less than 1
+    if (newQuantity < 1) return;
     try {
       await axios.put(
-        `http://localhost:5000/carts/${userId}/item/${fishId}`,
+        `http://localhost:5000/carts/${userId}/product/${productId}/${productType}`,
         { quantity: newQuantity },
         {
           headers: {
@@ -143,10 +176,11 @@ const CartPage: React.FC = () => {
           },
         }
       );
-      // Update the cartItems state with the new quantity
       setCartItems((prevItems) =>
         prevItems.map((item) =>
-          item.fishId._id === fishId ? { ...item, quantity: newQuantity } : item
+          item.productId._id === productId
+            ? { ...item, quantity: newQuantity }
+            : item
         )
       );
     } catch (err: any) {
@@ -156,36 +190,55 @@ const CartPage: React.FC = () => {
 
   const handleCheckout = async () => {
     const token = localStorage.getItem('token');
+    if (!userId) {
+      setError('User ID is not available');
+      return;
+    }
+  
     try {
+      // Prepare the data for the bill
+      const billData = {
+        userId, // Assuming userId is set after decoding the token
+        items: cartItems.map((item) => ({
+          productId: item.productId._id,
+          productType: item.productType,
+          quantity: item.quantity,
+          price: item.productId.price || item.price, // Ensure you use product price
+        })),
+        totalPrice: calculateTotal(), // Calculate the total price
+      };
+  
+      // Send the bill data to the backend
       const response = await axios.post(
-        'http://localhost:5000/check',
-        {},
+        'http://localhost:5000/bill',
+        billData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-
-      if (response.status === 200) {
-        alert('Checkout successful!');
-        setCartItems([]);
+  
+      if (response.status === 201) {
+        alert('Checkout successful! Your order is now in process.');
+        setCartItems([]); // Clear the cart after successful checkout
       } else {
         alert('Checkout failed. Please try again.');
       }
     } catch (err) {
+      console.error('Checkout error:', err);
       alert('Failed to complete checkout. Please try again.');
     }
-  };
+  };  
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
 
   const calculateTotal = () => {
-    return cartItems.reduce(
-      (total, item) => total + item.fishId.price * item.quantity,
-      0
-    );
+    return cartItems.reduce((total, item) => {
+      const price = item.productId?.price || item.price || 0;
+      return total + price * item.quantity;
+    }, 0);
   };
 
   const formatNumber = (number: number) => {
@@ -219,19 +272,23 @@ const CartPage: React.FC = () => {
                     {cartItems.map((item) => (
                       <Card className="mb-3" key={item._id}>
                         <CardBody>
-                          <div className="d-flex justify-content-between">
+                          <div className="d-flex justify-content-between align-items-center">
                             <div className="d-flex flex-row align-items-center">
-                              <div>
+                              {item.productId?.image ? (
                                 <CardImg
-                                  src={require(`../assets/img/aquarium/${item.fishId.image}`)}
+                                  src={require(`../assets/img/aquarium/${item.productId.image}`)}
                                   className="rounded-3"
-                                  style={{
-                                    width: '80px',
-                                    paddingRight: '1rem',
-                                  }}
+                                  style={{ width: '80px', paddingRight: '1rem' }}
                                   alt="Shopping item"
                                 />
-                              </div>
+                              ) : (
+                                <div
+                                  className="no-image"
+                                  style={{ width: '80px', paddingRight: '1rem' }}
+                                >
+                                  No Image Available
+                                </div>
+                              )}
                               <div
                                 className="ms-3 mb-0"
                                 style={{
@@ -240,21 +297,25 @@ const CartPage: React.FC = () => {
                                   paddingTop: '.7rem',
                                 }}
                               >
-                                <h5>{item.fishId.name}</h5>
+                                <h5>{item.productId?.name || 'No name available'}</h5>
                               </div>
                               <div className="col-8">
                                 <p className="small mb-0">
-                                  {item.fishId.description}
+                                  {item.productId?.description || 'No description available'}
                                 </p>
                               </div>
                             </div>
-                            <div className="d-flex flex-row align-items-center">
-                              <div className="d-flex align-items-center">
+                            <div className="d-flex flex-column align-items-center">
+                              <div className="d-flex align-items-center mb-2">
                                 <Button
                                   color="secondary"
                                   size="sm"
                                   onClick={() =>
-                                    handleUpdateQuantity(item.fishId._id, item.quantity - 1)
+                                    handleUpdateQuantity(
+                                      item.productId._id,
+                                      item.productType,
+                                      item.quantity - 1
+                                    )
                                   }
                                   disabled={item.quantity <= 1}
                                 >
@@ -274,23 +335,30 @@ const CartPage: React.FC = () => {
                                   color="secondary"
                                   size="sm"
                                   onClick={() =>
-                                    handleUpdateQuantity(item.fishId._id, item.quantity + 1)
+                                    handleUpdateQuantity(
+                                      item.productId._id,
+                                      item.productType,
+                                      item.quantity + 1
+                                    )
                                   }
                                 >
                                   +
                                 </Button>
                               </div>
-                              <div style={{ width: '100px', textAlign: 'right' }}>
-                                <h5 className="mb-0">
-                                  {formatNumber(item.fishId.price * item.quantity)} VNĐ
-                                </h5>
-                              </div>
-                              <a
-                                onClick={() => handleRemoveItem(item.fishId._id)}
-                                style={{ color: '#cecece', cursor: 'pointer', marginLeft: '15px' }}
+                              <h5 className="mb-0">
+                                {formatNumber(
+                                  (item.productId?.price || item.price || 0) * item.quantity
+                                )}{' '}
+                                VNĐ
+                              </h5>
+                              <Button
+                                color="danger"
+                                size="sm"
+                                onClick={() => handleRemoveItem(item)}
+                                className="mt-2"
                               >
-                                <i className="fas fa-trash-alt" />
-                              </a>
+                                Remove
+                              </Button>
                             </div>
                           </div>
                         </CardBody>
@@ -358,6 +426,23 @@ const CartPage: React.FC = () => {
           </Col>
         </Row>
       </Container>
+
+      {/* Confirmation Modal */}
+      <Modal isOpen={isModalOpen} toggle={cancelRemoveItem}>
+        <ModalHeader toggle={cancelRemoveItem}>Confirm Removal</ModalHeader>
+        <ModalBody>
+          Are you sure you want to remove{' '}
+          <strong>{itemToRemove?.productId.name}</strong> from your cart?
+        </ModalBody>
+        <ModalFooter>
+          <Button color="danger" onClick={confirmRemoveItem}>
+            Yes, Remove
+          </Button>{' '}
+          <Button color="secondary" onClick={cancelRemoveItem}>
+            Cancel
+          </Button>
+        </ModalFooter>
+      </Modal>
     </section>
   );
 };
