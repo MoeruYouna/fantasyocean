@@ -1,4 +1,4 @@
-//import Library
+// Import necessary libraries and components
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { styled, alpha } from '@mui/material/styles';
@@ -19,7 +19,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import MoreIcon from '@mui/icons-material/MoreVert';
 import Tooltip from '@mui/material/Tooltip';
 
-//Created component Search with style css
+// Styled components for search input
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
   borderRadius: theme.shape.borderRadius,
@@ -36,7 +36,6 @@ const Search = styled('div')(({ theme }) => ({
   },
 }));
 
-//Created a styled theme around the search icon
 const SearchIconWrapper = styled('div')(({ theme }) => ({
   padding: theme.spacing(0, 2),
   height: '100%',
@@ -47,7 +46,6 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
   justifyContent: 'center',
 }));
 
-//Created a styled input base in searchbar
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
   color: 'inherit',
   '& .MuiInputBase-input': {
@@ -61,42 +59,49 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-
 export default function PrimarySearchAppBar() {
-  //import useState to Scrolled management
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState<null | HTMLElement>(null);
   const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
   const [scrolled, setScrolled] = React.useState(false);
-
+  const [searchQuery, setSearchQuery] = React.useState(''); // Track the search query
   const navigate = useNavigate();
 
-  //Check if menu is Open (Both PC and Mobile)
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
   const isDropdownMenuOpen = Boolean(menuAnchorEl);
 
-  //Close all the open menu (if exist)
   const handleMenuClose = () => {
     setAnchorEl(null);
     setMobileMoreAnchorEl(null);
     setMenuAnchorEl(null);
   };
 
-  //Open the menu on mouseclick event
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, menuSetter: React.Dispatch<React.SetStateAction<HTMLElement | null>>) => {
+  const handleMenuOpen = (
+    event: React.MouseEvent<HTMLElement>,
+    menuSetter: React.Dispatch<React.SetStateAction<HTMLElement | null>>
+  ) => {
     menuSetter(event.currentTarget);
   };
 
-  //Handle the scroll effect
+  // Navigate to the search results page on "Enter"
+  const handleSearchKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter' && searchQuery.trim()) {
+      navigate(`/search?query=${searchQuery.trim()}`);
+    }
+  };
+
   React.useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  //Render menu with input item
-  const renderMenu = (menuId: string, anchor: HTMLElement | null, items: { label: string; action: () => void; path: string }[]) => (
+  const renderMenu = (
+    menuId: string,
+    anchor: HTMLElement | null,
+    items: { label: string; action: () => void; path: string }[]
+  ) => (
     <Menu
       anchorEl={anchor}
       anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
@@ -107,10 +112,13 @@ export default function PrimarySearchAppBar() {
       onClose={handleMenuClose}
     >
       {items.map((item, index) => (
-        <MenuItem key={index} onClick={() => {
-          navigate(item.path);
-          item.action();
-        }}>
+        <MenuItem
+          key={index}
+          onClick={() => {
+            navigate(item.path);
+            item.action();
+          }}
+        >
           {item.label}
         </MenuItem>
       ))}
@@ -118,7 +126,7 @@ export default function PrimarySearchAppBar() {
   );
 
   const accountMenuItems = [
-    { label: 'login', action: handleMenuClose, path: '/login'},
+    { label: 'login', action: handleMenuClose, path: '/login' },
     { label: 'register', action: handleMenuClose, path: '/register' },
   ];
 
@@ -146,7 +154,13 @@ export default function PrimarySearchAppBar() {
             <SearchIconWrapper>
               <SearchIcon />
             </SearchIconWrapper>
-            <StyledInputBase placeholder="Search…" inputProps={{ 'aria-label': 'search' }} />
+            <StyledInputBase
+              placeholder="Search…"
+              inputProps={{ 'aria-label': 'search' }}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)} // Update the search query state
+              onKeyPress={handleSearchKeyPress} // Capture "Enter" key press
+            />
           </Search>
           <Box sx={{ flexGrow: 1 }} />
           <Box sx={{ display: { xs: 'none', md: 'flex' } }}>

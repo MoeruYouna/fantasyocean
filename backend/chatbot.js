@@ -32,9 +32,19 @@ app.post('/chat', async (req, res) => {
   const filePath = getChatFilePath(userId);
 
   try {
+    // Fetch fish data
     const fishDataResponse = await axios.get('http://localhost:5000/fishs');
     const fishData = fishDataResponse.data;
 
+    // Fetch item data
+    const itemDataResponse = await axios.get('http://localhost:5000/items');
+    const itemData = itemDataResponse.data;
+
+    // Tạo danh sách HTML cho cá và vật phẩm
+    const fishList = fishData.map(fish => `<li>${fish.name} - Price: ${fish.price} VNĐ</li>`).join('');
+    const itemList = itemData.map(item => `<li>${item.name} - Price: ${item.price} VNĐ</li>`).join('');
+
+    // Read chat history
     const chatHistory = readChatHistory(filePath);
 
     const messages = chatHistory.map((chat) => ({
@@ -44,11 +54,15 @@ app.post('/chat', async (req, res) => {
 
     messages.push({ role: 'user', content: message });
 
+    // Combine fish and item data in the system message
     const systemMessage = {
       role: 'system',
-      content: `You are a helpful assistant on my website. Here is the current list of fish and their details: ${JSON.stringify(
-        fishData
-      )}. Based on this data, recommend what the customer should buy.`,
+      content: `You are a helpful assistant on my website. Here is the current list of fish and items available for sale: 
+      <h3>Fish List:</h3>
+      <ul>${fishList}</ul>
+      <h3>Item List:</h3>
+      <ul>${itemList}</ul>
+      Based on this data, recommend what the customer should buy.`,
     };
 
     const response = await axios.post(
@@ -66,9 +80,11 @@ app.post('/chat', async (req, res) => {
 
     const aiResponse = response.data.choices[0].message.content.trim();
 
+    // Update chat history with the user's message and assistant's response
     chatHistory.push({ role: 'user', message: message, timestamp: new Date() });
     chatHistory.push({ role: 'assistant', message: aiResponse, timestamp: new Date() });
 
+    // Save updated chat history
     saveChatHistory(filePath, chatHistory);
 
     res.json({ reply: aiResponse });

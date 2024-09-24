@@ -1,94 +1,141 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Grid, Card, CardContent, Typography, CardMedia, TextField, CircularProgress } from '@mui/material';
+import { Link } from 'react-router-dom';
+import {
+  Button,
+  Container,
+  Row,
+  Col,
+  ListGroupItem,
+  Card,
+  CardImg,
+  CardBody,
+  CardTitle,
+  CardText,
+  Input,
+  Spinner,
+} from 'reactstrap';
+import '../assets/css/aquarium_css/shop.css';
 
-interface Fish {
+// Function to format numbers into specific locale
+const formatNumber = (number: number) => {
+  return new Intl.NumberFormat('de-DE').format(number);
+};
+
+// Define types for Fish and Item data structure
+interface Product {
   _id: string;
   name: string;
-  category: string;
-  image: string;
   description: string;
+  category: string;
   price: number;
+  image: string;
+  productType: 'Fish' | 'Item'; // To distinguish between fish and items
 }
 
-const SearchResultsPage: React.FC = () => {
+const SearchPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [results, setResults] = useState<Fish[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // Fetch results based on the search query
-  useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setResults([]);
+  // Fetch both fish and items based on the search query
+  const fetchProducts = async (query: string) => {
+    if (!query) {
+      setProducts([]);
       return;
     }
 
-    const fetchResults = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await axios.get(`http://localhost:5000/fishs?name=${searchQuery}`);
-        setResults(response.data);
-      } catch (err) {
-        setError('Failed to fetch results. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
+    setLoading(true);
 
-    fetchResults();
-  }, [searchQuery]);
+    try {
+      const [fishResponse, itemResponse] = await Promise.all([
+        axios.get(`http://localhost:5000/fishs?name=${query}`),
+        axios.get(`http://localhost:5000/items?name=${query}`),
+      ]);
+
+      const fishResults = fishResponse.data.map((fish: any) => ({ ...fish, productType: 'Fish' }));
+      const itemResults = itemResponse.data.map((item: any) => ({ ...item, productType: 'Item' }));
+
+      setProducts([...fishResults, ...itemResults]);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const query = event.target.value;
+    setSearchQuery(query);
+    fetchProducts(query);
+  };
+
+  const truncateDescription = (description: string, maxLength: number) => {
+    return description.length > maxLength ? description.slice(0, maxLength) + '... read more' : description;
+  };
 
   return (
-    <Container>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Search for Fish
-      </Typography>
-      <TextField
-        label="Search by Name"
-        variant="outlined"
-        fullWidth
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        sx={{ marginBottom: 4 }}
-      />
+    <Container fluid>
+      <div className="text-center">
+        <h1 className="post-heading title">
+          <span>S</span>
+          <span>E</span>
+          <span>A</span>
+          <span>R</span>
+          <span>C</span>
+          <span>H</span>
+        </h1>
+      </div>
+
+      {/* Search Input */}
+      <Row className="mb-4">
+        <Col xs="12">
+          <Input
+            type="text"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            placeholder="Search for fish or items by name..."
+          />
+        </Col>
+      </Row>
+
       {loading ? (
-        <CircularProgress />
-      ) : error ? (
-        <Typography color="error">{error}</Typography>
+        <Spinner color="primary" />
       ) : (
-        <Grid container spacing={4}>
-          {results.map((fish) => (
-            <Grid item xs={12} sm={6} md={4} key={fish._id}>
-              <Card>
-                <CardMedia
-                  component="img"
-                  height="140"
-                  image={require(`../assets/img/aquarium/${fish.image}`)}
-                  alt={fish.name}
-                />
-                <CardContent>
-                  <Typography gutterBottom variant="h5" component="div">
-                    {fish.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {fish.description}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Price: {fish.price} VNĐ
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Category: {fish.category}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        <Row>
+          {products.length === 0 ? (
+            <Col>
+              <p>No results found</p>
+            </Col>
+          ) : (
+            products.map((product) => (
+              <Col md="4" key={product._id} className="mb-5">
+                <Card className="product-card">
+                  <CardImg
+                    className="product-img"
+                    top
+                    width="100%"
+                    src={require(`../assets/img/aquarium/${product.image}`)}
+                    alt={product.name}
+                  />
+                  <CardBody className="card-body">
+                    <CardTitle tag="h5">{product.name} ({product.productType})</CardTitle>
+                    <CardText>{truncateDescription(product.description, 100)}</CardText>
+                    <CardText>
+                      <strong>{formatNumber(product.price)} VNĐ</strong>
+                    </CardText>
+                    <Link to={`/${product.productType.toLowerCase()}/${product._id}`}>
+                      <Button color="warning">Buy Now</Button>
+                    </Link>
+                  </CardBody>
+                </Card>
+              </Col>
+            ))
+          )}
+        </Row>
       )}
     </Container>
   );
 };
 
-export default SearchResultsPage;
+export default SearchPage;

@@ -7,7 +7,7 @@ function HomeView() {
         <div
           className="page-header-image"
           style={{
-            backgroundImage: "url(" + require("../assets/img/aquarium/BG_3.jpg") + ")"
+            backgroundImage: "url(" + require("../assets/img/aquarium/BG_4.jpg") + ")"
           }}
         ></div>
       </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import '../chatbotPage/chatbot.css';
+import './chatbot.css'; // Assuming you have chatbot.css for the styles
 
 type Message = {
   role: 'user' | 'assistant';
@@ -50,6 +50,15 @@ const ChatbotPage: React.FC = () => {
 
   return (
     <div className="chat-container">
+      {/* Animated CHATBOT heading */}
+      <div className="text-center">
+        <h1 className="post-heading title">
+          <span>B</span>
+          <span>O</span>
+          <span>T</span>
+        </h1>
+      </div>
+
       <div className="chat-box" ref={chatBoxRef}>
         {messages.map((message, index) => (
           <div
