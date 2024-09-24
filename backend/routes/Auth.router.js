@@ -9,16 +9,13 @@ router.post('/register', async (req, res) => {
   const { email, name, password, age, address, avt, description } = req.body;
 
   try {
-    // Ensure email is stored in lowercase
     const lowerCaseEmail = email.toLowerCase();
-
-    // Check if the user already exists
+ 
     let user = await User.findOne({ email: lowerCaseEmail });
     if (user) {
       return res.status(400).json({ message: 'Email is already registered' });
     }
 
-    // Create a new user
     user = new User({
       email: lowerCaseEmail,
       name,
@@ -32,7 +29,6 @@ router.post('/register', async (req, res) => {
 
     const savedUser = await user.save();
 
-    // Generate JWT token
     const token = jwt.sign({ userId: savedUser._id }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
@@ -61,13 +57,10 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    // Generate JWT token
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    // Check if user already has a cart
     let cart = await Cart.findOne({ userId: user._id });
     if (!cart) {
-      // If no cart exists, create a new one with zero products
       cart = new Cart({
         userId: user._id,
         items: [],

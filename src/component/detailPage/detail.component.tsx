@@ -19,6 +19,7 @@ const ProductDetail: React.FC = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [modal, setModal] = useState<boolean>(false);
   const [modalMessage, setModalMessage] = useState<string>('');
+  const [userName, setUserName] = useState<string | null>('User'); // Placeholder for user name
 
   const isFish = window.location.pathname.includes('/fish');
   const productType = isFish ? 'Fish' : 'Item'; 
@@ -32,6 +33,7 @@ const ProductDetail: React.FC = () => {
         const response = await axios.get(url);
         const productData = response.data;
         setProduct(productData);
+        setUserName(localStorage.getItem('userName') || 'User'); // Fetch user name from localStorage
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -50,14 +52,11 @@ const ProductDetail: React.FC = () => {
       return;
     }
   
-    console.log('Token:', token); // Log the token to check if it is available
-    console.log('Product ID:', _id); // Log the product ID
-  
     try {
       const response = await axios.post(
         'http://localhost:5000/carts/cart',
         {
-          productId: _id,  // Check if _id is correct
+          productId: _id,
           quantity: 1,
           productType
         },
@@ -67,15 +66,13 @@ const ProductDetail: React.FC = () => {
           },
         }
       );
-      console.log('Add to Cart Response:', response.data); // Log the server response
       setModalMessage('Product added to cart successfully!');
     } catch (error) {
-      console.error('Add to Cart Error:', error); // Log any error from the request
       setModalMessage('Failed to add product. Please try again.');
     } finally {
       setModal(true);
     }
-  };  
+  };
 
   const closeModal = () => {
     setModal(false);
@@ -93,9 +90,8 @@ const ProductDetail: React.FC = () => {
       {product && (
         <Row>
           <Col md="6" className="main-image">
-            {/* Replaced Carousel with simple img */}
             <img
-              src={require(`../assets/img/aquarium/${product.image}`)} // Default image if none is available
+              src={require(`../assets/img/aquarium/${product.image}`)}
               alt={product.name}
               className="d-block w-100"
             />
@@ -108,9 +104,12 @@ const ProductDetail: React.FC = () => {
                 "{product.description}"
               </p>
             </blockquote>
+            <div className="rating">
+              <span>⭐⭐⭐⭐☆</span> {/* Add a rating system */}
+            </div>
             <Button className="btn-round" color="info" type="button" onClick={addToCart}>
               <i className="now-ui-icons ui-2_favourite-28"></i>
-              Add to Cart
+              Grab Yours Now!
             </Button>
           </Col>
         </Row>
