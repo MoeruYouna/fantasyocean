@@ -43,7 +43,7 @@ const catIrouter = require('./routes/CatI.router');
 app.use('/catI', catIrouter)
 
 const billRouter = require('./routes/Bill.router');
-app.use('/bill', billRouter)
+app.use('/bills', billRouter)
 
 
 // Start the server

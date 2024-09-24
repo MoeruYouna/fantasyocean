@@ -13,6 +13,7 @@ import InsertFish from './component/adminPage/fishInsert.component';
 import InsertItem from './component/adminPage/itemInsert.component';
 import EditFish from './component/adminPage/fishEdit.component';
 import EditItem from './component/adminPage/itemEdit.component';
+import BillAdminPage from './component/adminPage/bill.component';
 import CartView from './view/cart.view';
 import DetailView from './view/detail.view';
 import AuthView from './view/auth.view';
@@ -50,6 +51,7 @@ const MainApp: React.FC = () => {
         <Route path="/admin/insertI" element={<InsertItem />} />
         <Route path="/admin/editFish/:id" element={<EditFish />} />
         <Route path="/admin/editItem/:id" element={<EditItem />} />
+        <Route path="/admin/bill" element={<BillAdminPage />} />
         {/* Protected Route: Admin Page */}
         <Route
           path="/admin"

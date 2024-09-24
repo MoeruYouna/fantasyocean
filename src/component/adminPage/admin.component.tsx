@@ -103,6 +103,16 @@ const AdminPage: React.FC = () => {
         >
           Add New Product
         </Button>
+        <Button
+          className="btn-them btn-round btn-white"
+          color="default"
+          to="/admin/bill"
+          outline
+          size="lg"
+          tag={Link}
+        >
+          Management Bill
+        </Button>
         <table>
           <thead>
             <tr>
