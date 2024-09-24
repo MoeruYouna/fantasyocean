@@ -10,7 +10,7 @@ import ShopView from './view/shop.view';
 import SearchView from './view/search.view';
 import AdminPage from './component/adminPage/admin.component';
 import CartView from './view/cart.view';
-import FishDetailView from './view/detail.view';
+import DetailView from './view/detail.view';
 import AuthView from './view/auth.view';
 import UserFormView from './view/userform.view';
 
@@ -39,7 +39,8 @@ const MainApp: React.FC = () => {
         <Route path="/register" element={<RegisterView />} />
         <Route path="/shop" element={<ShopView />} />
         <Route path="/cart" element={<CartView />} />
-        <Route path="/fish/:_id" element={<FishDetailView />} />
+        <Route path="/fish/:_id" element={<DetailView />} />
+        <Route path="/item/:_id" element={<DetailView />} />
         <Route path="/search" element={<SearchView />} />
         {/* Protected Route: Admin Page */}
         <Route

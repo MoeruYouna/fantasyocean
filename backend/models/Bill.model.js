@@ -1,35 +1,42 @@
 const mongoose = require('mongoose');
 
 const billSchema = new mongoose.Schema({
-    userId: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User', 
-        required: true },
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
     items: [
         {
-            fishId: { 
-                type: mongoose.Schema.Types.ObjectId, 
-                ref: 'Fish', 
-                required: true 
-            },
-
-            quantity: { 
-                type: Number, 
+            productId: {
+                type: mongoose.Schema.Types.ObjectId,
+                refPath: 'items.productType', 
                 required: true
             },
 
-            price: { 
-                type: Number, 
-                required: true 
-            }
+            productType: {
+                type: String,
+                required: true,
+                enum: ['Fish', 'Item'] 
+            },
+
+            quantity: {
+                type: Number,
+                required: true
+            },
+
+            price: {
+                type: Number,
+                required: true
+            },
         }
     ],
-    totalPrice: { 
-        type: Number, 
-        required: true 
+    totalPrice: {
+        type: Number,
+        required: true
     },
-    purchaseDate: { 
-        type: Date, 
+    purchaseDate: {
+        type: Date,
         default: Date.now
     }
 });

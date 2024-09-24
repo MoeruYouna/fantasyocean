@@ -29,6 +29,7 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
+  console.log(`Received request for item ID: ${req.params.id}`);
   try {
     const item = await Item.findById(id);
     if (item) {

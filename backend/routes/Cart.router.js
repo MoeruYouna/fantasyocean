@@ -4,96 +4,95 @@ const authMiddleware = require('../middleware/auth');
 const mongoose = require('mongoose');
 const Cart = require('../models/Cart.model');
 const Fish = require('../models/Fish.model');
-const User = require('../models/User.model')
+const Item = require('../models/Item.model');
 
-// Helper function to validate ObjectId
 function isValidObjectId(id) {
   return mongoose.Types.ObjectId.isValid(id);
 }
 
-// Add item to cart route
+async function findProductById(productId, productType) {
+  if (productType === 'Fish') {
+    return await Fish.findById(productId);
+  } else if (productType === 'Item') {
+    return await Item.findById(productId);
+  }
+  return null;
+}
+
+// Example backend API route for adding to cart
 router.post('/cart', authMiddleware, async (req, res) => {
-    const { fishID, quantity } = req.body;
-    const userId = req.user.userId;    
+  const { productId, quantity, productType } = req.body;
+  const userId = req.user?.userId;
 
-    if (!isValidObjectId(fishID)) {
-      return res.status(400).json({ error: "Invalid fishID format" });
+  try {
+    const product = await findProductById(productId, productType);
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
     }
-    if (!isValidObjectId(userId)) {
-      return res.status(400).json({ error: "Invalid userId format" });
+
+    let cart = await Cart.findOne({ userId });
+    if (!cart) {
+      cart = new Cart({ userId, items: [], totalPrice: 0 });
     }
 
-    try {
-      let cart = await Cart.findOne({ userId });
-      const fish = await Fish.findById(fishID);
-
-      if (!fish) {
-        return res.status(404).json({ error: "Fish not found" });
-      }
-
-      if (!cart) {
-        // Create a new cart if none exists
-        cart = new Cart({ userId, items: [], totalPrice: 0 });
-      }
-
-      const itemIndex = cart.items.findIndex(item => item.fishId.equals(fishID));
-
-      if (itemIndex > -1) {
-        // Fish exists in the cart, update the quantity and price
-        cart.items[itemIndex].quantity += quantity;
-        cart.items[itemIndex].price = cart.items[itemIndex].quantity * fish.price;
-      } else {
-        // Add a new fish item to the cart
-        cart.items.push({
-          fishId: fishID,
-          quantity,
-          price: fish.price * quantity,
-        });
-      }
-
-      // Recalculate total price
-      cart.totalPrice = cart.items.reduce((total, item) => total + item.price, 0);
-
-      // Save the updated cart
-      await cart.save();
-      res.status(201).json(cart);
-
-    } catch (err) {
-      console.error("Error while adding to cart:", err);  // Log the actual error
-      res.status(500).json({ error: 'An error occurred while adding to the cart.' });
+    const itemIndex = cart.items.findIndex(item => item.productId.equals(productId) && item.productType === productType);
+    if (itemIndex > -1) {
+      cart.items[itemIndex].quantity += quantity;
+      cart.items[itemIndex].price = cart.items[itemIndex].quantity * product.price;
+    } else {
+      cart.items.push({
+        productId,
+        productType,
+        quantity,
+        price: product.price * quantity,
+      });
     }
+
+    cart.totalPrice = cart.items.reduce((total, item) => total + item.price, 0);
+    await cart.save();
+    res.status(201).json(cart);
+  } catch (err) {
+    console.error("Error adding to cart:", err);
+    res.status(500).json({ error: 'An error occurred while adding to the cart.' });
+  }
 });
 
-// Get cart for user route
 router.get('/:userID', async (req, res) => {
   const { userID } = req.params;
 
-  // Validate userID
   if (!isValidObjectId(userID)) {
     return res.status(400).json({ error: "Invalid userID format" });
   }
 
   try {
-    const cart = await Cart.findOne({ userId: userID }).populate('items.fishId');
+    // Dynamically populate based on productType
+    const cart = await Cart.findOne({ userId: userID }).populate({
+      path: 'items.productId',
+      select: 'name description price image', // Populate the necessary fields
+    });
+    console.log(cart);
+
     if (!cart) {
       return res.status(404).json({ message: "Cart not found" });
     }
+
     res.status(200).json(cart.items);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// Delete item from cart route
-router.delete('/:userID/item/:fishID', async (req, res) => {
-  const { userID, fishID } = req.params;
 
-  // Validate userID and fishID
+// Delete product (fish or item) from cart
+router.delete('/:userID/product/:productId/:productType', async (req, res) => {
+  const { userID, productId, productType } = req.params;
+
+  // Validate userID and productId
   if (!isValidObjectId(userID)) {
     return res.status(400).json({ error: "Invalid userID format" });
   }
-  if (!isValidObjectId(fishID)) {
-    return res.status(400).json({ error: "Invalid fishID format" });
+  if (!isValidObjectId(productId)) {
+    return res.status(400).json({ error: "Invalid productId format" });
   }
 
   try {
@@ -102,30 +101,31 @@ router.delete('/:userID/item/:fishID', async (req, res) => {
       return res.status(404).json({ message: "Cart not found" });
     }
 
-    const itemIndex = cart.items.findIndex(item => item.fishId.equals(fishID));
+    const itemIndex = cart.items.findIndex(item => item.productId.equals(productId) && item.productType === productType);
     if (itemIndex > -1) {
       cart.items.splice(itemIndex, 1);  // Remove the item from the cart
       cart.totalPrice = cart.items.reduce((total, item) => total + item.price, 0);  // Recalculate total price
       await cart.save();
-      return res.status(200).json({ message: "Item removed from cart successfully." });
+      return res.status(200).json({ message: "Product removed from cart successfully." });
     } else {
-      return res.status(404).json({ message: "Item not found in cart!" });
+      return res.status(404).json({ message: "Product not found in cart!" });
     }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-router.put('/:userID/item/:fishID', async (req, res) => {
-  const { userID, fishID } = req.params;
+// Update quantity for product (fish or item) in cart
+router.put('/:userID/product/:productId/:productType', async (req, res) => {
+  const { userID, productId, productType } = req.params;
   const { quantity } = req.body;
 
-  // Validate userID and fishID
+  // Validate userID and productId
   if (!isValidObjectId(userID)) {
     return res.status(400).json({ error: "Invalid userID format" });
   }
-  if (!isValidObjectId(fishID)) {
-    return res.status(400).json({ error: "Invalid fishID format" });
+  if (!isValidObjectId(productId)) {
+    return res.status(400).json({ error: "Invalid productId format" });
   }
 
   if (quantity < 1) {
@@ -138,16 +138,16 @@ router.put('/:userID/item/:fishID', async (req, res) => {
       return res.status(404).json({ message: "Cart not found" });
     }
 
-    const item = cart.items.find((item) => item.fishId.equals(fishID));
+    const item = cart.items.find(item => item.productId.equals(productId) && item.productType === productType);
     if (item) {
       // Update the quantity and price
-      const fish = await Fish.findById(fishID);
-      if (!fish) {
-        return res.status(404).json({ error: "Fish not found" });
+      const product = await findProductById(productId, productType);
+      if (!product) {
+        return res.status(404).json({ error: "Product not found" });
       }
 
       item.quantity = quantity;
-      item.price = fish.price * quantity;
+      item.price = product.price * quantity;
 
       // Recalculate total price
       cart.totalPrice = cart.items.reduce((total, item) => total + item.price, 0);
@@ -155,12 +155,11 @@ router.put('/:userID/item/:fishID', async (req, res) => {
       await cart.save();
       return res.status(200).json({ message: "Quantity updated successfully." });
     } else {
-      return res.status(404).json({ message: "Item not found in cart!" });
+      return res.status(404).json({ message: "Product not found in cart!" });
     }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
-
 
 module.exports = router;

@@ -69,7 +69,7 @@ const LoginPage: React.FC = () => {
         email: formData.email,
         password: formData.password,
       });
-
+  
       const { token } = response.data;
       localStorage.setItem('token', token); 
       setModalMessage('Account login successfully!');
@@ -83,6 +83,7 @@ const LoginPage: React.FC = () => {
       setModal(true);
     }
   };
+  
 
   return (
     <div className="page-header clear-filter" filter-color="blue">

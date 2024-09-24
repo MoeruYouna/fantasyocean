@@ -3,7 +3,7 @@ import IndexNavbar from "../component/index/navbar.component";
 import Footer from "../component/index/footer.component";
 import FishDetail from '../component/detailPage/detail.component';
 
-const FishDetailView: React.FC = () => {
+const DetailView: React.FC = () => {
   useEffect(() => {
     document.body.classList.add('index-page');
     document.body.classList.add('sidebar-collapse');
@@ -30,4 +30,4 @@ const FishDetailView: React.FC = () => {
   );
 };
 
-export default FishDetailView;
+export default DetailView;
