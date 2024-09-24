@@ -190,27 +190,46 @@ const CartPage: React.FC = () => {
 
   const handleCheckout = async () => {
     const token = localStorage.getItem('token');
+    if (!userId) {
+      setError('User ID is not available');
+      return;
+    }
+  
     try {
+      // Prepare the data for the bill
+      const billData = {
+        userId, // Assuming userId is set after decoding the token
+        items: cartItems.map((item) => ({
+          productId: item.productId._id,
+          productType: item.productType,
+          quantity: item.quantity,
+          price: item.productId.price || item.price, // Ensure you use product price
+        })),
+        totalPrice: calculateTotal(), // Calculate the total price
+      };
+  
+      // Send the bill data to the backend
       const response = await axios.post(
-        'http://localhost:5000/check',
-        {},
+        'http://localhost:5000/bill',
+        billData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-
-      if (response.status === 200) {
-        alert('Checkout successful!');
-        setCartItems([]);
+  
+      if (response.status === 201) {
+        alert('Checkout successful! Your order is now in process.');
+        setCartItems([]); // Clear the cart after successful checkout
       } else {
         alert('Checkout failed. Please try again.');
       }
     } catch (err) {
+      console.error('Checkout error:', err);
       alert('Failed to complete checkout. Please try again.');
     }
-  };
+  };  
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;

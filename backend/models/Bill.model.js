@@ -38,7 +38,12 @@ const billSchema = new mongoose.Schema({
     purchaseDate: {
         type: Date,
         default: Date.now
+    },
+    status:{
+        type: String,
+        enum: ['In Process','On Delevery', 'Done'] 
     }
+
 });
 
 const Bill = mongoose.model('Bill', billSchema);

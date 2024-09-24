@@ -36,14 +36,14 @@ app.use('/api/user', userRouter);
 const cartRouter = require('./routes/Cart.router');
 app.use('/carts', cartRouter);
 
-const checkRouter = require('./routes/Checkout.router');
-app.use('/check', checkRouter)
-
 const catFrouter = require('./routes/CatF.router');
 app.use('/catF', catFrouter)
 
 const catIrouter = require('./routes/CatI.router');
 app.use('/catI', catIrouter)
+
+const billRouter = require('./routes/Bill.router');
+app.use('/bill', billRouter)
 
 
 // Start the server
