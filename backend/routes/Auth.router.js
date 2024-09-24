@@ -43,6 +43,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// Auth Controller - Login Route
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -57,19 +58,11 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    // Create a JWT token with user role
+    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    let cart = await Cart.findOne({ userId: user._id });
-    if (!cart) {
-      cart = new Cart({
-        userId: user._id,
-        items: [],
-        totalPrice: 0
-      });
-      await cart.save();
-    }
-
-    res.status(200).json({ token, message: 'Login successful, cart created/checked' });
+    // Send role in the response
+    res.status(200).json({ token, role: user.role, message: 'Login successful' });
 
   } catch (error) {
     console.error('Login error:', error);

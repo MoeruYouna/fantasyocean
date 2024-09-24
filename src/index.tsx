@@ -9,6 +9,8 @@ import RegisterView from './view/register.view';
 import ShopView from './view/shop.view';
 import SearchView from './view/search.view';
 import AdminPage from './component/adminPage/admin.component';
+import InsertFish from './component/adminPage/fishInsert.component';
+import InsertItem from './component/adminPage/itemInsert.component';
 import CartView from './view/cart.view';
 import DetailView from './view/detail.view';
 import AuthView from './view/auth.view';
@@ -42,6 +44,8 @@ const MainApp: React.FC = () => {
         <Route path="/fish/:_id" element={<DetailView />} />
         <Route path="/item/:_id" element={<DetailView />} />
         <Route path="/search" element={<SearchView />} />
+        <Route path="/admin/insertF" element={<InsertFish />} />
+        <Route path="/admin/insertI" element={<InsertItem />} />
         {/* Protected Route: Admin Page */}
         <Route
           path="/admin"

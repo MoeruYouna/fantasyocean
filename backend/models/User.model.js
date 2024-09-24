@@ -45,11 +45,11 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     required: true,
+    enum: ['user', 'admin'], 
     default: 'user',
   }
 });
 
-// Hash the password before saving
 userSchema.pre('save', async function(next) {
   if (this.isModified('password') || this.isNew) {
     try {

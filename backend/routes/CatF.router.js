@@ -3,8 +3,7 @@ const CatF = require('../models/Category_F.model');
 
 const router = express.Router();
 
-// Route to get all categories
-router.get('/categoriesF', async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         const categories = await CatF.find(); 
         res.status(200).json(categories);
@@ -13,7 +12,7 @@ router.get('/categoriesF', async (req, res) => {
     }
 });
 
-router.post('/categoriesF', async (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const newCategory = new CatF({
             name: req.body.name 
