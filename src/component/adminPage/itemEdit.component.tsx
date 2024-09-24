@@ -8,27 +8,22 @@ const itemCategories = ["Stone", "Tree", "Led", "Tank"];
 
 interface FormData {
   name: string;
-  categoryName: string; 
+  categoryName: string;  // This will hold the category name as expected by the backend
   image: string;
   description: string;
   price: string;
   quantity: string;
 }
 
-interface RouteParams extends Record<string, string | undefined> {
-  id: string;
-  type: 'item';
-}
-
 const EditItem: React.FC = () => {
-  const { id } = useParams<RouteParams>();
-  const navigate = useNavigate();  // useNavigate instead of useHistory
+  const { id } = useParams<{ id: string }>();  // Extract 'id' from URL
+  const navigate = useNavigate();  // Navigate hook
   
   const [modal, setModal] = useState<boolean>(false);
   const [modalMessage, setModalMessage] = useState<string>('');
   const [formData, setFormData] = useState<FormData>({
     name: '',
-    categoryName: itemCategories[0],
+    categoryName: itemCategories[0],  // Default category
     image: '',
     description: '',
     price: '',
@@ -38,16 +33,17 @@ const EditItem: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
+  // Fetch the item details for editing
   useEffect(() => {
     const fetchData = async () => {
       try {
         const url = `http://localhost:5000/items/${id}`;
         const response = await axios.get(url);
         const data = response.data;
-        
+
         setFormData({
           name: data.name,
-          categoryName: data.category, 
+          categoryName: data.category,
           image: data.image,
           description: data.description,
           price: data.price.toString(),
@@ -55,14 +51,15 @@ const EditItem: React.FC = () => {
         });
         setSelectedCategory(data.category);
       } catch (error) {
-        console.error('Error fetching product data:', error);
-        setErrorMessage('Failed to fetch product data.');
+        console.error('Error fetching item data:', error);
+        setErrorMessage('Failed to fetch item data.');
       }
     };
 
     fetchData();
   }, [id]);
 
+  // Handle category selection
   const handleCategoryClick = (category: string) => {
     setSelectedCategory(category);
     setFormData({
@@ -71,6 +68,7 @@ const EditItem: React.FC = () => {
     });
   };
 
+  // Handle form input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({
@@ -79,6 +77,7 @@ const EditItem: React.FC = () => {
     });
   };
 
+  // Handle form submission
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -88,7 +87,6 @@ const EditItem: React.FC = () => {
       const url = `http://localhost:5000/items/${id}`;
       await axios.put(url, formData);
       setModalMessage('Item updated successfully!');
-      navigate('/admin');  // Navigate back to admin page after update
     } catch (error) {
       console.error('Update error:', error);
       setModalMessage('Failed to update item. Please try again.');
@@ -136,6 +134,7 @@ const EditItem: React.FC = () => {
                     </Col>
                   </Row>
 
+                  {/* Input Fields */}
                   <Row className="mb-3">
                     <Col xs="4">
                       <Label for="name">Name</Label>
@@ -228,6 +227,7 @@ const EditItem: React.FC = () => {
         </Row>
       </Container>
 
+      {/* Modal for Success/Error Message */}
       <Modal modalClassName="modal-mini modal-info" toggle={closeModal} isOpen={modal}>
         <div className="modal-header justify-content-center">
           <div className="modal-profile">

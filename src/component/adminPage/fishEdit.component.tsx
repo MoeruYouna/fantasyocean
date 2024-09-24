@@ -15,13 +15,9 @@ interface FormData {
   quantity: string;
 }
 
-interface RouteParams extends Record<string, string | undefined> {
-    id: string;
-    type: 'fish';
-}
-
 const EditFish: React.FC = () => {
-  const { id } = useParams<RouteParams>();
+  // No need to specify a type for useParams
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();  // useNavigate instead of useHistory
   
   const [modal, setModal] = useState<boolean>(false);
@@ -47,7 +43,7 @@ const EditFish: React.FC = () => {
         
         setFormData({
           name: data.name,
-          categoryName: data.category, 
+          categoryName: data.category,
           image: data.image,
           description: data.description,
           price: data.price.toString(),
@@ -88,7 +84,6 @@ const EditFish: React.FC = () => {
       const url = `http://localhost:5000/fishs/${id}`;
       await axios.put(url, formData);
       setModalMessage('Fish updated successfully!');
-      navigate('/admin');  // Navigate back to admin page after update
     } catch (error) {
       console.error('Update error:', error);
       setModalMessage('Failed to update fish. Please try again.');
@@ -228,6 +223,7 @@ const EditFish: React.FC = () => {
         </Row>
       </Container>
 
+      {/* Modal for success/failure messages */}
       <Modal modalClassName="modal-mini modal-info" toggle={closeModal} isOpen={modal}>
         <div className="modal-header justify-content-center">
           <div className="modal-profile">

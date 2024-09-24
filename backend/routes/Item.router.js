@@ -45,6 +45,10 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   const { name, categoryName, image, description, price, quantity } = req.body;
 
+  if (price <= 0 || quantity <= 0) {
+    return res.status(400).json({ message: 'Price and quantity must be non-negative.' });
+  }
+
   try {
     const category = await Category.findOne({ name: categoryName });
     if (!category) {
@@ -61,7 +65,7 @@ router.post('/', async (req, res) => {
     });
 
     const newItem = await item.save();
-    res.status(201).json(newItem)
+    res.status(201).json(newItem);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -82,28 +86,31 @@ router.delete('/item/delete/:_id', async (req, res) => {
 });
 
 router.put('/:id', async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params; 
   const { name, categoryName, image, description, price, quantity } = req.body;
 
+  // Validate that price and quantity are non-negative
+  if (price <= 0 || quantity <= 0) {
+    return res.status(400).json({ message: 'Price and quantity must be non-negative.' });
+  }
+
   try {
-    // Find the category based on the categoryName
     const category = await Category.findOne({ name: categoryName });
     if (!category) {
       return res.status(404).json({ message: 'Category not found' });
     }
 
-    // Update the item with the new values
     const updatedItem = await Item.findByIdAndUpdate(
-      id,
+      id,  
       {
         name,
-        catID: category._id, // Update the category ID if the categoryName changes
+        catID: category._id,
         image,
         description,
         price,
-        quantity
+        quantity,
       },
-      { new: true } // Return the updated document
+      { new: true } 
     );
 
     if (!updatedItem) {
@@ -115,5 +122,6 @@ router.put('/:id', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
 
 module.exports = router;

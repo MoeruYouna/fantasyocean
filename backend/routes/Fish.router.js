@@ -44,6 +44,10 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   const { name, categoryName, image, description, price, quantity } = req.body;
 
+  if (price <= 0 || quantity <= 0) {
+    return res.status(400).json({ message: 'Price and quantity must be non-negative.' });
+  }
+
   try {
     const category = await Category.findOne({ name: categoryName });
     if (!category) {
@@ -81,8 +85,13 @@ router.delete('/delete/:_id', async (req, res) => {
 });
 
 router.put('/:id', async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params; // Extract 'id' from the URL parameters
   const { name, categoryName, image, description, price, quantity } = req.body;
+
+  // Validate that price and quantity are not negative
+  if (price <= 0 || quantity <= 0) {
+    return res.status(400).json({ message: 'Price and quantity must be non-negative.' });
+  }
 
   try {
     const category = await Category.findOne({ name: categoryName });
@@ -90,16 +99,15 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Category not found' });
     }
 
-    // Update the item with the new values
     const updatedFish = await Fish.findByIdAndUpdate(
-      id,
+      id, // Use 'id' from req.params here
       {
         name,
-        catID: category._id, // Update the category ID if the categoryName changes
+        catID: category._id,
         image,
         description,
         price,
-        quantity
+        quantity,
       },
       { new: true } // Return the updated document
     );
